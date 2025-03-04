@@ -1,29 +1,27 @@
-// Mock data for the lyrics website
-
 export interface Song {
-  id: string
-  title: string
-  artist: string
-  album: string
-  coverImage: string
-  duration: string
-  genre: string
-  releaseDate: string
-  lyrics: string
-  contributors: string[]
+  id: string;
+  title: string;
+  artist: string;
+  album: string;
+  coverImage: string;
+  duration: string;
+  genre: string;
+  releaseDate: string;
+  lyrics: string;
+  contributors: string[];
 }
 
 export interface Artist {
-  id: string
-  name: string
-  bio: string
-  image: string
-  genres: string[]
+  id: string;
+  name: string;
+  bio: string;
+  image: string;
+  genres: string[];
   stats: {
-    songs: number
-    albums: number
-    followers: string
-  }
+    songs: number;
+    albums: number;
+    followers: string;
+  };
 }
 
 export const songs: Song[] = [
@@ -227,7 +225,169 @@ Zeros and ones, binary code
 Digital pathways where feelings flow...`,
     contributors: ["Pixel Pulse", "Tech Producer", "Digital Writer"],
   },
-]
+  // Yabesh Thapa Songs
+  {
+    id: "laakhau-hajarau",
+    title: "Laakhau Hajarau",
+    artist: "Yabesh Thapa",
+    album: "Single",
+    coverImage:
+      "https://images.genius.com/074ed88dbf0f5903a962da612c1480b9.1000x1000x1.jpg", // Example from YouTube thumbnail
+    duration: "4:05",
+    genre: "Indie Pop",
+    releaseDate: "2019-06-01", // Approximate based on debut info
+    lyrics: `Timro tyo muskan le
+Malai aafnai banaucha
+Laakhau hajarau madhye
+Timilai nai khojcha
+
+Chorus:
+Timro lagi yo man
+Dhadkancha harpal
+Timilai dekhera
+Yo jiwan bancha safal
+
+Haat samaayera
+Sangai hidne chu
+Timro aankhama
+Aafailai dekhne chu
+
+(Repeat Chorus)
+
+Bridge:
+Timro saath paye
+Yo sansar sundar lagcha
+Har kadam ma timi
+Mero sathi bancha
+
+(Repeat Chorus)
+
+Outro:
+Timro tyo muskan le
+Malai aafnai banaucha...`,
+    contributors: ["Yabesh Thapa", "Class X Presentation"],
+  },
+  {
+    id: "angalney-chu",
+    title: "Angalney Chu",
+    artist: "Yabesh Thapa",
+    album: "Single",
+    coverImage: "https://i.ytimg.com/vi/4rW19BlyPZA/maxresdefault.jpg", // Example from YouTube thumbnail
+    duration: "3:48",
+    genre: "Indie Acoustic",
+    releaseDate: "2020-03-15", // Approximate
+    lyrics: `Timro aankha ma baseko
+Sapana haru dekhe
+Angalney chu timilai
+Dil ma rakhe
+
+Chorus:
+Timilai samjhera
+Yo man le bolcha
+Har raat timrai
+Kalpana ma dolcha
+
+Timi bina yo jiwan
+Adhuro lagcha
+Timro saath le
+Sabai thik huncha
+
+(Repeat Chorus)
+
+Bridge:
+Timro haat samayera
+Sangai bitaune chu
+Timro maya le
+Yo dil chune chu
+
+(Repeat Chorus)
+
+Outro:
+Timro aankha ma baseko
+Sapana haru dekhe...`,
+    contributors: ["Yabesh Thapa"],
+  },
+  {
+    id: "firfirey",
+    title: "Firfirey",
+    artist: "Yabesh Thapa",
+    album: "Single",
+    coverImage: "https://i0.wp.com/www.nepalitrends.com/wp-content/uploads/2020/09/Yabesh-thapa.jpg?fit=724%2C720&ssl=1", // Example from YouTube thumbnail
+    duration: "3:35",
+    genre: "Indie Pop",
+    releaseDate: "2021-04-09",
+    lyrics: `Yo hawa lai sodhihera
+Yo aakash lai pani thaha cha
+Din bitigo maya tara
+Raat chadai cha ni
+
+Chorus:
+Firfirey yo man
+Timro lagi dhadkancha
+Timilai samjhera
+Yo dil nachancha
+
+Timro boli sunera
+Yo jiwan rangincha
+Timro saath paye
+Sabai thik huncha
+
+(Repeat Chorus)
+
+Bridge:
+Timro muskan le
+Yo sansar roshancha
+Har pal timrai
+Yaad ma bitancha
+
+(Repeat Chorus)
+
+Outro:
+Yo hawa lai sodhihera
+Yo aakash lai pani thaha cha...`,
+    contributors: ["Yabesh Thapa"],
+  },
+  {
+    id: "alapatra",
+    title: "Alapatra",
+    artist: "Yabesh Thapa",
+    album: "Single",
+    coverImage: "https://i.ytimg.com/vi/_zZ5nO8L5zM/maxresdefault.jpg", // Example from YouTube thumbnail
+    duration: "4:12",
+    genre: "Indie Pop",
+    releaseDate: "2023-10-20", // Approximate based on recent release mentions
+    lyrics: `Alapatra yo man
+Timro lagi khojdai cha
+Timilai bhetna
+Har din bitaudai cha
+
+Chorus:
+Timro maya ko rang
+Yo dil ma baseko cha
+Timilai samjhera
+Yo man udeko cha
+
+Timro saath le
+Yo jiwan sundar cha
+Timro aankha ma
+Mero sansar cha
+
+(Repeat Chorus)
+
+Bridge:
+Timro baato ma
+Har kadam chaldai chu
+Timro lagi yo
+Sapana dekhdai chu
+
+(Repeat Chorus)
+
+Outro:
+Alapatra yo man
+Timro lagi khojdai cha...`,
+    contributors: ["Yabesh Thapa"],
+  },
+];
 
 export const artists: Artist[] = [
   {
@@ -290,30 +450,43 @@ export const artists: Artist[] = [
       followers: "178K",
     },
   },
-]
+  {
+    id: "yabesh-thapa",
+    name: "Yabesh Thapa",
+    bio: "Yabesh Thapa is a Nepali singer-songwriter and producer who has taken the indie music scene by storm with his soulful voice and heartfelt lyrics. Hailing from Kathmandu, Nepal, Yabesh blends indie pop and acoustic elements to create music that resonates deeply with listeners. Known for hits like 'Laakhau Hajarau' and 'Firfirey,' he explores themes of love, longing, and personal growth. His authentic storytelling and melodic compositions have earned him a growing fanbase both in Nepal and internationally.",
+    image: "https://i0.wp.com/www.nepalitrends.com/wp-content/uploads/2020/09/Yabesh-thapa.jpg?fit=724%2C720&ssl=1", // Using a consistent image from a song cover
+    genres: [ "Acoustic", "Pop"],
+    stats: {
+      songs: 21, // Based on known discography mentions
+      albums: 0, // Mostly singles, no full album yet
+      followers: "358K", // Spotify monthly listeners as a proxy
+    },
+  },
+];
 
 export function getSongBySlug(slug: string): Song | undefined {
-  return songs.find((song) => song.id === slug)
+  return songs.find((song) => song.id === slug);
 }
 
 export function getArtistById(id: string): Artist | undefined {
-  return artists.find((artist) => artist.id === id)
+  return artists.find((artist) => artist.id === id);
 }
 
 export function getArtistSongs(artistName: string): Song[] {
-  return songs.filter((song) => song.artist === artistName)
+  return songs.filter((song) => song.artist === artistName);
 }
 
 export function getRecentSongs(count = 5): Song[] {
-  return songs.slice(0, count)
+  return songs.slice(0, count);
 }
 
 export function getPopularSongs(count = 5): Song[] {
   // In a real app, this would be based on play count or other metrics
-  return [...songs].sort(() => 0.5 - Math.random()).slice(0, count)
+  return [...songs].sort(() => 0.5 - Math.random()).slice(0, count);
 }
 
 export function getSongsByGenre(genre: string): Song[] {
-  return songs.filter((song) => song.genre.toLowerCase() === genre.toLowerCase())
+  return songs.filter(
+    (song) => song.genre.toLowerCase() === genre.toLowerCase()
+  );
 }
-

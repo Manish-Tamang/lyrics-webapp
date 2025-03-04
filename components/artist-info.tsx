@@ -25,7 +25,7 @@ export default function ArtistInfo({ name, bio, image, genres, stats }: ArtistIn
           </div>
 
           <div className="flex-1 text-center md:text-left">
-            <h1 className="text-2xl font-bold md:text-3xl">{name}</h1>
+            <h1 className="text-2xl font-geist font-bold md:text-3xl">{name}</h1>
 
             <div className="mt-2 flex flex-wrap justify-center gap-2 md:justify-start">
               {genres.map((genre) => (

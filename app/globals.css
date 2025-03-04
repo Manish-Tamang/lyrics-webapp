@@ -92,10 +92,9 @@
   h4,
   h5,
   h6 {
-    @apply font-bethany font-semibold; /* Now use bethany on titles */
+    @apply font-bethany font-semibold; 
   }
-
-  /* Selection color */
+  
   ::selection {
     @apply bg-primary text-primary-foreground;
   }

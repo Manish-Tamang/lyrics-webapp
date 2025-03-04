@@ -77,7 +77,6 @@ const bethany = localFont({
 export const metadata: Metadata = {
   title: "LyricVerse - Song Lyrics and Artist Info",
   description: "Discover song lyrics and artist information in a clean, minimalist interface",
-  generator: 'v0.dev'
 }
 
 export default function RootLayout({

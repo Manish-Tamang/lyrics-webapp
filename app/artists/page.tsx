@@ -31,7 +31,7 @@ export default function ArtistsPage() {
               </div>
               <div className="flex flex-1 flex-col justify-between p-4">
                 <div>
-                  <h3 className="font-semibold group-hover:text-primary-foreground">{artist.name}</h3>
+                  <h3 className="font-semibold font-geist group-hover:text-primary-foreground">{artist.name}</h3>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {artist.genres.slice(0, 2).map((genre) => (
                       <Badge key={genre} variant="outline" className="rounded-[4px] text-xs">

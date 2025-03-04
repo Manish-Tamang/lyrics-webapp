@@ -27,7 +27,7 @@ export default function SongCard({ id, title, artist, album, coverImage, duratio
           />
         </div>
         <CardContent className="p-4">
-          <h3 className="line-clamp-1 font-semibold group-hover:text-primary-foreground">{title}</h3>
+          <h3 className="line-clamp-1 font-geist font-semibold group-hover:text-primary-foreground">{title}</h3>
           <p className="line-clamp-1 text-sm text-muted-foreground">{artist}</p>
 
           <div className="mt-3 flex items-center justify-between">
