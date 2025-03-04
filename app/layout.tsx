@@ -1,16 +1,16 @@
-import { Poppins } from "next/font/google"
-import "./globals.css"
-import Navbar from "@/components/navbar"
-import Footer from "@/components/footer"
-import localFont from "next/font/local"
-import type React from "react"
+import { Poppins } from "next/font/google";
+import "./globals.css";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
+import localFont from "next/font/local";
+import type React from "react";
 import type { Metadata } from "next"
 
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-poppins",
-})
+});
 
 const geist = localFont({
   src: [
@@ -52,7 +52,7 @@ const geist = localFont({
     {
       path: '../public/fonts/Geist-ExtraBold.otf',
       weight: '800',
-      style: 'normal',  
+      style: 'normal',
     },
     {
       path: '../public/fonts/Geist-Black.otf',
@@ -61,7 +61,18 @@ const geist = localFont({
     },
   ],
   variable: '--font-geist',
-})
+});
+
+const bethany = localFont({
+  src: [
+    {
+      path: '../public/fonts/Bethany Elingston.otf',
+      weight: '400',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-bethany',
+});
 
 export const metadata: Metadata = {
   title: "LyricVerse - Song Lyrics and Artist Info",
@@ -76,7 +87,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geist.variable} ${poppins.variable} font-geist bg-[#FAFAFA]`}>
+      <body className={`${geist.variable} ${poppins.variable} ${bethany.variable} font-sans bg-[#FAFAFA]`}>
         <Navbar />
         <main className="mx-auto max-w-[670px] px-4 py-6">{children}</main>
         <Footer />

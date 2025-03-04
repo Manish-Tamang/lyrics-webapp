@@ -74,6 +74,9 @@
   .font-poppins {
     font-family: var(--font-poppins), sans-serif;
   }
+    .font-bethany {
+    font-family: var(--font-bethany), sans-serif;
+  }
 }
 
 @layer base {
@@ -89,7 +92,7 @@
   h4,
   h5,
   h6 {
-    @apply font-poppins font-semibold;
+    @apply font-bethany font-semibold; /* Now use bethany on titles */
   }
 
   /* Selection color */
