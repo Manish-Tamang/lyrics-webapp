@@ -1,76 +1,98 @@
-"use client";
+import Link from "next/link"
+import { Facebook, Twitter, Instagram, Youtube } from "lucide-react"
 
-import { Button } from "@/components/ui/button";
-import { Sun, Moon, Laptop, Github, Twitter, Music2 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useTheme } from "next-themes";
-
-export function Footer() {
-  const { setTheme } = useTheme();
-
+export default function Footer() {
   return (
-    <footer className="border-t border-green-500/10 bg-background">
-      <div className="container py-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          {/* Logo and Copyright */}
-          <div className="flex items-center ml-4 gap-2">
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} LyricVerse. All rights reserved.
-            </p>
+    <footer className="border-t bg-background">
+      <div className="mx-auto max-w-[670px] px-4 py-8">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+          <div>
+            <h3 className="mb-4 text-sm font-semibold uppercase">About</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="#" className="text-muted-foreground hover:text-foreground">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="text-muted-foreground hover:text-foreground">
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="text-muted-foreground hover:text-foreground">
+                  Careers
+                </Link>
+              </li>
+            </ul>
           </div>
-
-          {/* Center Links */}
-          <div className="flex items-center gap-4">
-
-
+          <div>
+            <h3 className="mb-4 text-sm font-semibold uppercase">Legal</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="#" className="text-muted-foreground hover:text-foreground">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="text-muted-foreground hover:text-foreground">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="text-muted-foreground hover:text-foreground">
+                  Copyright
+                </Link>
+              </li>
+            </ul>
           </div>
-
-          {/* Social Links */}
-          <div className="flex items-center gap-4">
-          <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 px-0">
-                  <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                  <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                  <span className="sr-only">Toggle theme</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setTheme("light")}>
-                  <Sun className="h-4 w-4 mr-2" />
-                  Light
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("dark")}>
-                  <Moon className="h-4 w-4 mr-2" />
-                  Dark
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("system")}>
-                  <Laptop className="h-4 w-4 mr-2" />
-                  System
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <span className="text-sm mr-4 text-muted-foreground">
-              Built with
-              <span className="mx-1 text-green-500">❤️</span>
-              by{" "}
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium hover:text-green-500 transition-colors"
-              >
-                LyricVerse
-              </a>
-            </span>
+          <div>
+            <h3 className="mb-4 text-sm font-semibold uppercase">Community</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="#" className="text-muted-foreground hover:text-foreground">
+                  Forum
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="text-muted-foreground hover:text-foreground">
+                  Support
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="text-muted-foreground hover:text-foreground">
+                  Contributors
+                </Link>
+              </li>
+            </ul>
           </div>
+          <div>
+            <h3 className="mb-4 text-sm font-semibold uppercase">Follow Us</h3>
+            <div className="flex space-x-4">
+              <Link href="#" className="text-muted-foreground hover:text-foreground">
+                <Facebook className="h-5 w-5" />
+                <span className="sr-only">Facebook</span>
+              </Link>
+              <Link href="#" className="text-muted-foreground hover:text-foreground">
+                <Twitter className="h-5 w-5" />
+                <span className="sr-only">Twitter</span>
+              </Link>
+              <Link href="#" className="text-muted-foreground hover:text-foreground">
+                <Instagram className="h-5 w-5" />
+                <span className="sr-only">Instagram</span>
+              </Link>
+              <Link href="#" className="text-muted-foreground hover:text-foreground">
+                <Youtube className="h-5 w-5" />
+                <span className="sr-only">YouTube</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+        <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
+          <p>© {new Date().getFullYear()} LyricVerse. All rights reserved.</p>
         </div>
       </div>
     </footer>
-  );
+  )
 }
+

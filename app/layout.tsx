@@ -1,38 +1,90 @@
-import "./globals.css";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
+import type React from "react"
+import type { Metadata } from "next"
+import { Poppins } from "next/font/google"
+import "./globals.css"
+import Navbar from "@/components/navbar"
+import Footer from "@/components/footer"
+import localFont from "next/font/local"
 
-const inter = Inter({ subsets: ["latin"] });
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-poppins",
+})
+
+const geist = localFont({
+  src: [
+    {
+      path: '../public/fonts/Geist-Thin.otf',
+      weight: '100',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/Geist-ExtraLight.otf',
+      weight: '200',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/Geist-Light.otf',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/Geist-Regular.otf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/Geist-Medium.otf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/Geist-SemiBold.otf',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/Geist-Bold.otf',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/Geist-ExtraBold.otf',
+      weight: '800',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/Geist-Black.otf',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-geist',
+})
 
 export const metadata: Metadata = {
-  title: "LyricVerse - Discover Your Favorite Song Lyrics",
-  description: "Explore a collection of beautiful song lyrics from various artists.",
-};
+  title: "LyricVerse - Song Lyrics and Artist Info",
+  description: "Discover song lyrics and artist information in a clean, minimalist interface",
+    generator: 'v0.dev'
+}
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}: Readonly<{
+  children: React.ReactNode
+}>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <div className="relative min-h-screen flex flex-col">
-            <Header />
-            <div className="flex-1">{children}</div>
-            <Footer />
-          </div>
-        </ThemeProvider>
+    <html lang="en">
+      <body className={`${geist.variable} font-geist bg-[#FAFAFA]`}>
+        <Navbar />
+        <main className="mx-auto max-w-[670px] px-4 py-6">{children}</main>
+        <Footer />
       </body>
     </html>
-  );
+  )
 }
+
+
+
+import './globals.css'
