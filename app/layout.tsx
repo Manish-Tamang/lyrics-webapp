@@ -1,10 +1,10 @@
-import type React from "react"
-import type { Metadata } from "next"
 import { Poppins } from "next/font/google"
 import "./globals.css"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import localFont from "next/font/local"
+import type React from "react"
+import type { Metadata } from "next"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -66,7 +66,7 @@ const geist = localFont({
 export const metadata: Metadata = {
   title: "LyricVerse - Song Lyrics and Artist Info",
   description: "Discover song lyrics and artist information in a clean, minimalist interface",
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -76,7 +76,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geist.variable} font-geist bg-[#FAFAFA]`}>
+      <body className={`${geist.variable} ${poppins.variable} font-geist bg-[#FAFAFA]`}>
         <Navbar />
         <main className="mx-auto max-w-[670px] px-4 py-6">{children}</main>
         <Footer />
@@ -84,7 +84,5 @@ export default function RootLayout({
     </html>
   )
 }
-
-
 
 import './globals.css'

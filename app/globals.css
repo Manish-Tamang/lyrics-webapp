@@ -42,7 +42,7 @@
     --card: 24 9.8% 10%;
     --card-foreground: 0 0% 95%;
 
-    --popover: 0 0% 9%;
+    --popover: 0 0% 9;
     --popover-foreground: 0 0% 95%;
 
     --primary: 350 33% 90%;
@@ -66,12 +66,22 @@
   }
 }
 
+@layer utilities {
+  .font-geist {
+    font-family: var(--font-geist), sans-serif;
+  }
+
+  .font-poppins {
+    font-family: var(--font-poppins), sans-serif;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-geist;
   }
   h1,
   h2,
@@ -89,71 +99,4 @@
   ::-moz-selection {
     @apply bg-primary text-primary-foreground;
   }
-}
-
-.font-poppins {
-  font-family: var(--font-poppins), sans-serif;
-}
-
-@font-face {
-  font-family: 'Geist';
-  src: url('/fonts/Geist-Thin.otf') format('opentype');
-  font-weight: 100;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Geist';
-  src: url('/fonts/Geist-ExtraLight.otf') format('opentype');
-  font-weight: 200;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Geist';
-  src: url('/fonts/Geist-Light.otf') format('opentype');
-  font-weight: 300;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Geist';
-  src: url('/fonts/Geist-Regular.otf') format('opentype');
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Geist';
-  src: url('/fonts/Geist-Medium.otf') format('opentype');
-  font-weight: 500;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Geist';
-  src: url('/fonts/Geist-SemiBold.otf') format('opentype');
-  font-weight: 600;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Geist';
-  src: url('/fonts/Geist-Bold.otf') format('opentype');
-  font-weight: 700;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Geist';
-  src: url('/fonts/Geist-ExtraBold.otf') format('opentype');
-  font-weight: 800;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Geist';
-  src: url('/fonts/Geist-Black.otf') format('opentype');
-  font-weight: 900;
-  font-style: normal;
 }
