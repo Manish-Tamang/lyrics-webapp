@@ -52,7 +52,7 @@ const geist = localFont({
     {
       path: '../public/fonts/Geist-ExtraBold.otf',
       weight: '800',
-      style: 'normal',
+      style: 'normal',  
     },
     {
       path: '../public/fonts/Geist-Black.otf',
