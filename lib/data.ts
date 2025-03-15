@@ -391,10 +391,10 @@ Timro lagi khojdai cha...`,
 
 export const artists: Artist[] = [
   {
-    id: "luna-eclipse",
-    name: "Luna Eclipse",
+    id: "jpt-rockerz",
+    name: "Jpt Rockerz",
     bio: "Luna Eclipse emerged from the underground electronic scene with a unique blend of ambient soundscapes and pulsing rhythms. Known for creating immersive sonic experiences that transport listeners to otherworldly realms, Luna's music often explores themes of space, time, and human consciousness. With three critically acclaimed albums and numerous collaborations with visual artists, Luna Eclipse continues to push the boundaries of electronic music.",
-    image: "/placeholder.svg?height=400&width=400",
+    image: "/artist/jptrockerz/jptrockerz.jpeg",
     genres: ["Electronic", "Ambient", "Downtempo"],
     stats: {
       songs: 42,
