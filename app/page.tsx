@@ -11,7 +11,6 @@ export default function Home() {
 
   return (
     <div className="space-y-10">
-      {/* Hero Section */}
       <section className="relative overflow-hidden rounded-[4px] bg-primary p-6 text-primary-foreground md:p-8">
         <div className="relative z-10">
           <h1 className="text-3xl font-bold md:text-4xl">Discover Lyrics</h1>
@@ -24,7 +23,7 @@ export default function Home() {
             </Button>
             <Button
               variant="outline"
-              className="rounded-[4px] border-white bg-transparent text-white hover:bg-white/10"
+              className="rounded-[4px] border-white/10 bg-transparent text-bg-white/10 hover:bg-white/10"
             >
               <Link href="/artists">Explore Artists</Link>
             </Button>
@@ -33,8 +32,6 @@ export default function Home() {
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
         <div className="absolute -bottom-32 -left-20 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
       </section>
-
-      {/* Featured Songs */}
       <section>
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-2xl font-bold">Featured Songs</h2>
@@ -58,13 +55,9 @@ export default function Home() {
           ))}
         </div>
       </section>
-
-      {/* Popular Songs */}
       <section>
         <RecentSongs songs={popularSongs} title="Popular Songs" viewAllLink="/song" />
       </section>
-
-      {/* Call to Action */}
       <section className="rounded-[4px] bg-muted p-6 text-center">
         <h2 className="text-xl font-bold md:text-2xl">Join Our Community</h2>
         <p className="mx-auto mt-2 max-w-md text-muted-foreground">
