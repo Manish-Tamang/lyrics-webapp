@@ -481,7 +481,6 @@ export function getRecentSongs(count = 5): Song[] {
 }
 
 export function getPopularSongs(count = 5): Song[] {
-  // In a real app, this would be based on play count or other metrics
   return [...songs].sort(() => 0.5 - Math.random()).slice(0, count);
 }
 
