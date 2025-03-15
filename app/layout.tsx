@@ -5,63 +5,9 @@ import Footer from "@/components/footer";
 import localFont from "next/font/local";
 import type React from "react";
 import type { Metadata } from "next"
+import { Karla } from 'next/font/google';
 
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-poppins",
-});
-
-const geist = localFont({
-  src: [
-    {
-      path: '../public/fonts/Geist-Thin.otf',
-      weight: '100',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Geist-ExtraLight.otf',
-      weight: '200',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Geist-Light.otf',
-      weight: '300',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Geist-Regular.otf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Geist-Medium.otf',
-      weight: '500',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Geist-SemiBold.otf',
-      weight: '600',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Geist-Bold.otf',
-      weight: '700',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Geist-ExtraBold.otf',
-      weight: '800',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Geist-Black.otf',
-      weight: '900',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-geist',
-});
+const karla = Karla({ subsets: ['latin'] });
 
 const bethany = localFont({
   src: [
@@ -86,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geist.variable} ${poppins.variable} ${bethany.variable} font-sans bg-[#FAFAFA]`}>
+      <body className={`${karla.className} ${bethany.variable} font-karla bg-[#FAFAFA]`}>
         <Navbar />
         <main className="mx-auto max-w-[670px] px-4 py-6">{children}</main>
         <Footer />
