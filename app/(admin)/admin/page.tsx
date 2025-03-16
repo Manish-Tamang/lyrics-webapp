@@ -1,3 +1,4 @@
+"use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Overview } from "@/components/admin/overview"
@@ -5,8 +6,25 @@ import { RecentSubmissions } from "@/components/admin/recent-submissions"
 import { SubmissionsTable } from "@/components/admin/submissions-table"
 import { ArtistsTable } from "@/components/admin/artists-table"
 import { SongsTable } from "@/components/admin/songs-table"
+import { useEffect, useState } from "react";
+import { db } from "@/lib/firebase/config";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function AdminDashboard() {
+ const [submissionCount, setSubmissionCount] = useState(0);
+
+ useEffect(() => {
+   fetchSubmissionCount();
+ }, []);
+
+ const fetchSubmissionCount = async () => {
+   try {
+     const querySnapshot = await getDocs(collection(db, "submissions"));
+     setSubmissionCount(querySnapshot.size);
+   } catch (error) {
+     console.error("Error fetching submission count:", error);
+   }
+ };
   return (
     <div className="flex flex-col space-y-6">
       <Tabs defaultValue="overview" className="space-y-4">
@@ -42,7 +60,7 @@ export default function AdminDashboard() {
                 <CardTitle className="text-sm font-medium">Pending Submissions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">18</div>
+                <div className="text-2xl font-bold">{submissionCount}</div>
                 <p className="text-xs text-muted-foreground">+4 since yesterday</p>
               </CardContent>
             </Card>
@@ -59,7 +77,7 @@ export default function AdminDashboard() {
             <Card className="col-span-3">
               <CardHeader>
                 <CardTitle>Recent Submissions</CardTitle>
-                <CardDescription>You have 18 submissions waiting for review</CardDescription>
+                <CardDescription>You have {submissionCount} submissions waiting for review</CardDescription>
               </CardHeader>
               <CardContent>
                 <RecentSubmissions />
@@ -107,4 +125,3 @@ export default function AdminDashboard() {
     </div>
   )
 }
-
