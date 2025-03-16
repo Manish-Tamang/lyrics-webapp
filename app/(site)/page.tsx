@@ -3,7 +3,7 @@ import { ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import SongCard from "@/components/song-card"
 import RecentSongs from "@/components/recent-songs"
-import { getRecentSongs, getPopularSongs } from "@/lib/data"
+import { getRecentSongs, getPopularSongs } from "@/lib/mock-data"
 
 export default function Home() {
   const recentSongs = getRecentSongs(3)
