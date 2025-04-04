@@ -12,20 +12,20 @@ import { Song } from "@/types";
 import { Timestamp } from "firebase/firestore";
 import { Home } from "lucide-react";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -195,9 +195,9 @@ export default function AdminProfilePage() {
                                             </Badge>
                                             <p className="text-xs text-muted-foreground whitespace-nowrap">
                                                 {song.createdAt ? format(
-                                                    song.createdAt instanceof Timestamp 
-                                                        ? song.createdAt.toDate() 
-                                                        : new Date(song.createdAt), 
+                                                    song.createdAt instanceof Timestamp
+                                                        ? song.createdAt.toDate()
+                                                        : new Date(song.createdAt),
                                                     "MMM d, yyyy"
                                                 ) : "N/A"}
                                             </p>
@@ -218,7 +218,7 @@ export default function AdminProfilePage() {
                                                 className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
                                             />
                                         </PaginationItem>
-                                        
+
                                         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                                             <PaginationItem key={page}>
                                                 <PaginationLink
@@ -229,7 +229,7 @@ export default function AdminProfilePage() {
                                                 </PaginationLink>
                                             </PaginationItem>
                                         ))}
-                                        
+
                                         <PaginationItem>
                                             <PaginationNext
                                                 onClick={() => handlePageChange(currentPage + 1)}
