@@ -250,7 +250,6 @@ export default function SubmissionsPage() {
           </div>
         </div>
       </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
@@ -259,7 +258,6 @@ export default function SubmissionsPage() {
           <TabsTrigger value="rejected">Rejected</TabsTrigger>
         </TabsList>
       </Tabs>
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
