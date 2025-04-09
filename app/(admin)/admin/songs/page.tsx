@@ -963,7 +963,6 @@ export default function SongsPage() {
           </DialogContent>
         </Dialog>
       )}
-
       {/* Delete Confirmation Dialog */}
       {selectedSong && (
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
