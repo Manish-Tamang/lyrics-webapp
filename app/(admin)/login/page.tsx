@@ -11,7 +11,6 @@ export const metadata: Metadata = {
 
 export default async function AdminLoginPage({ searchParams }: { searchParams: { callbackUrl?: string } }) {
     const session = await auth();
-
     if (session?.user?.isAdmin) {
         redirect(searchParams.callbackUrl || "/admin");
     }
