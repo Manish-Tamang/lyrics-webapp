@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Eye, Check, X, Edit, Trash2, Search } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Eye, Check, X, Edit, Trash2, Search, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -15,136 +15,98 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Skeleton } from "@/components/ui/skeleton"
+import { db } from "@/lib/firebase/config"
+import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, addDoc } from "firebase/firestore"
+import { toast } from "sonner"
 
-// Mock data for submissions
-const mockSubmissions = [
-  {
-    id: "1",
-    songTitle: "Midnight Dreams",
-    artistName: "Luna Eclipse",
-    albumName: "Lunar Phase",
-    submittedAt: "2023-03-15",
-    status: "pending",
-    genre: "Pop",
-    language: "English",
-  },
-  {
-    id: "2",
-    songTitle: "Ocean Waves",
-    artistName: "Coastal Sounds",
-    albumName: "Seaside Melodies",
-    submittedAt: "2023-03-14",
-    status: "pending",
-    genre: "Indie",
-    language: "English",
-  },
-  {
-    id: "3",
-    songTitle: "Mountain High",
-    artistName: "Alpine Echoes",
-    albumName: "Summit",
-    submittedAt: "2023-03-13",
-    status: "approved",
-    genre: "Folk",
-    language: "English",
-  },
-  {
-    id: "4",
-    songTitle: "City Lights",
-    artistName: "Urban Vibes",
-    albumName: "Metropolis",
-    submittedAt: "2023-03-12",
-    status: "rejected",
-    genre: "Electronic",
-    language: "English",
-  },
-  {
-    id: "5",
-    songTitle: "Desert Wind",
-    artistName: "Sandy Tunes",
-    albumName: "Oasis",
-    submittedAt: "2023-03-11",
-    status: "pending",
-    genre: "World",
-    language: "Spanish",
-  },
-  {
-    id: "6",
-    songTitle: "Rainy Day",
-    artistName: "Weather Patterns",
-    albumName: "Seasons",
-    submittedAt: "2023-03-10",
-    status: "pending",
-    genre: "Jazz",
-    language: "English",
-  },
-  {
-    id: "7",
-    songTitle: "Starlight",
-    artistName: "Cosmic Harmony",
-    albumName: "Galaxy",
-    submittedAt: "2023-03-09",
-    status: "approved",
-    genre: "Ambient",
-    language: "Instrumental",
-  },
-  {
-    id: "8",
-    songTitle: "Forest Whispers",
-    artistName: "Woodland Creatures",
-    albumName: "Nature's Call",
-    submittedAt: "2023-03-08",
-    status: "pending",
-    genre: "Folk",
-    language: "English",
-  },
-]
+// Define the Submission type
+interface Submission {
+  id: string
+  songTitle: string
+  artistName: string
+  albumName: string
+  releaseDate: string
+  genre: string
+  language: string
+  lyrics: string
+  contributors: string
+  notes: string
+  imageUrl: string | null
+  status: "pending" | "approved" | "rejected"
+  createdAt: any
+  updatedAt: any
+}
 
-// Mock lyrics for preview
-const mockLyrics = `Verse 1:
-Walking through the midnight streets
-Shadows dancing at my feet
-City lights blur in the rain
-Memories flood back again
-
-Chorus:
-In the echo of your voice
-I find myself, I have no choice
-Midnight dreams that never fade
-Promises we never made
-
-Verse 2:
-Stars above guide my way
-Through the night into the day
-Time stands still when I'm with you
-In this world we make anew
-
-Chorus:
-In the echo of your voice
-I find myself, I have no choice
-Midnight dreams that never fade
-Promises we never made
-
-Bridge:
-The moon hangs low, the night is deep
-Secrets that we choose to keep
-In the darkness we are free
-Just the stars, just you and me
-
-Chorus:
-In the echo of your voice
-I find myself, I have no choice
-Midnight dreams that never fade
-Promises we never made
-Promises we never made`
+// Skeleton component for loading state
+const TableSkeleton = () => (
+  <TableRow>
+    <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+    <TableCell className="text-right">
+      <div className="flex justify-end space-x-1">
+        <Skeleton className="h-8 w-8 rounded-md" />
+        <Skeleton className="h-8 w-8 rounded-md" />
+        <Skeleton className="h-8 w-8 rounded-md" />
+      </div>
+    </TableCell>
+  </TableRow>
+)
 
 export default function SubmissionsPage() {
-  const [submissions, setSubmissions] = useState(mockSubmissions)
+  const [submissions, setSubmissions] = useState<Submission[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("all")
-  const [selectedSubmission, setSelectedSubmission] = useState<any>(null)
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
+
+  // Fetch submissions from Firebase
+  useEffect(() => {
+    const fetchSubmissions = async () => {
+      try {
+        setLoading(true)
+        const submissionsQuery = query(collection(db, "lyricsSubmissions"), orderBy("createdAt", "desc"))
+        const submissionsSnapshot = await getDocs(submissionsQuery)
+        
+        const submissionsData: Submission[] = []
+        submissionsSnapshot.forEach((doc) => {
+          const data = doc.data()
+          submissionsData.push({
+            id: doc.id,
+            songTitle: data.songTitle || "",
+            artistName: data.artistName || "",
+            albumName: data.albumName || "",
+            releaseDate: data.releaseDate || "",
+            genre: data.genre || "",
+            language: data.language || "",
+            lyrics: data.lyrics || "",
+            contributors: data.contributors || "",
+            notes: data.notes || "",
+            imageUrl: data.imageUrl || null,
+            status: data.status || "pending",
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt
+          })
+        })
+        
+        setSubmissions(submissionsData)
+      } catch (error) {
+        console.error("Error fetching submissions:", error)
+        toast.error("Failed to load submissions")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSubmissions()
+  }, [])
 
   const filteredSubmissions = submissions.filter((submission) => {
     const matchesSearch =
@@ -155,31 +117,121 @@ export default function SubmissionsPage() {
     return matchesSearch && submission.status === activeTab
   })
 
-  const handleApprove = (id: string) => {
-    setSubmissions(
-      submissions.map((submission) => (submission.id === id ? { ...submission, status: "approved" } : submission)),
-    )
+  const handleApprove = async (id: string) => {
+    try {
+      setActionLoading(true)
+      const submissionRef = doc(db, "lyricsSubmissions", id)
+      
+      // Get the submission data
+      const submission = submissions.find(s => s.id === id)
+      if (!submission) {
+        throw new Error("Submission not found")
+      }
+      
+      // Update the submission status
+      await updateDoc(submissionRef, {
+        status: "approved",
+        updatedAt: serverTimestamp()
+      })
+      
+      // Add the song to the songs collection
+      await addDoc(collection(db, "songs"), {
+        title: submission.songTitle,
+        artist: submission.artistName,
+        album: submission.albumName || "",
+        genre: submission.genre,
+        language: submission.language,
+        releaseDate: submission.releaseDate || "",
+        lyrics: submission.lyrics,
+        contributors: submission.contributors || "",
+        notes: submission.notes || "",
+        imageUrl: submission.imageUrl,
+        views: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      })
+      
+      // Update the local state
+      setSubmissions(
+        submissions.map((submission) => 
+          submission.id === id ? { ...submission, status: "approved" } : submission
+        )
+      )
+      
+      toast.success("Submission approved and added to songs collection")
+    } catch (error) {
+      console.error("Error approving submission:", error)
+      toast.error("Failed to approve submission")
+    } finally {
+      setActionLoading(false)
+    }
   }
 
-  const handleReject = (id: string) => {
-    setSubmissions(
-      submissions.map((submission) => (submission.id === id ? { ...submission, status: "rejected" } : submission)),
-    )
+  const handleReject = async (id: string) => {
+    try {
+      setActionLoading(true)
+      const submissionRef = doc(db, "lyricsSubmissions", id)
+      await updateDoc(submissionRef, {
+        status: "rejected",
+        updatedAt: serverTimestamp()
+      })
+      
+      setSubmissions(
+        submissions.map((submission) => 
+          submission.id === id ? { ...submission, status: "rejected" } : submission
+        )
+      )
+      
+      toast.success("Submission rejected successfully")
+    } catch (error) {
+      console.error("Error rejecting submission:", error)
+      toast.error("Failed to reject submission")
+    } finally {
+      setActionLoading(false)
+    }
   }
 
-  const handleDelete = (id: string) => {
-    setSubmissions(submissions.filter((submission) => submission.id !== id))
-    setIsDeleteDialogOpen(false)
+  const handleDelete = async (id: string) => {
+    try {
+      setActionLoading(true)
+      await deleteDoc(doc(db, "lyricsSubmissions", id))
+      
+      setSubmissions(submissions.filter((submission) => submission.id !== id))
+      setIsDeleteDialogOpen(false)
+      
+      toast.success("Submission deleted successfully")
+    } catch (error) {
+      console.error("Error deleting submission:", error)
+      toast.error("Failed to delete submission")
+    } finally {
+      setActionLoading(false)
+    }
   }
 
-  const openPreview = (submission: any) => {
+  const openPreview = (submission: Submission) => {
     setSelectedSubmission(submission)
     setIsPreviewOpen(true)
   }
 
-  const confirmDelete = (submission: any) => {
+  const confirmDelete = (submission: Submission) => {
     setSelectedSubmission(submission)
     setIsDeleteDialogOpen(true)
+  }
+
+  // Format date from Firestore timestamp
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return "N/A"
+    
+    try {
+      const date = timestamp.toDate()
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }).format(date)
+    } catch (error) {
+      return "N/A"
+    }
   }
 
   return (
@@ -187,13 +239,15 @@ export default function SubmissionsPage() {
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <h1 className="text-2xl font-bold tracking-tight">Lyrics Submissions</h1>
         <div className="flex items-center space-x-2">
-          <Input
-            placeholder="Search submissions..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-[250px]"
-            icon={<Search className="h-4 w-4" />}
-          />
+          <div className="relative">
+            <Input
+              placeholder="Search submissions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-[250px] pl-9"
+            />
+            <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+          </div>
         </div>
       </div>
 
@@ -220,7 +274,15 @@ export default function SubmissionsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredSubmissions.length === 0 ? (
+            {loading ? (
+              <>
+                <TableSkeleton />
+                <TableSkeleton />
+                <TableSkeleton />
+                <TableSkeleton />
+                <TableSkeleton />
+              </>
+            ) : filteredSubmissions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
                   No submissions found.
@@ -231,14 +293,14 @@ export default function SubmissionsPage() {
                 <TableRow key={submission.id}>
                   <TableCell className="font-medium">{submission.songTitle}</TableCell>
                   <TableCell>{submission.artistName}</TableCell>
-                  <TableCell>{submission.albumName}</TableCell>
+                  <TableCell>{submission.albumName || "N/A"}</TableCell>
                   <TableCell>{submission.genre}</TableCell>
-                  <TableCell>{submission.submittedAt}</TableCell>
+                  <TableCell>{formatDate(submission.createdAt)}</TableCell>
                   <TableCell>
                     <Badge
                       variant={
                         submission.status === "approved"
-                          ? "success"
+                          ? "default"
                           : submission.status === "rejected"
                             ? "destructive"
                             : "outline"
@@ -260,18 +322,22 @@ export default function SubmissionsPage() {
                             size="icon"
                             className="text-green-500"
                             onClick={() => handleApprove(submission.id)}
+                            disabled={actionLoading}
+                            title="Approve and add to public songs"
                           >
                             <Check className="h-4 w-4" />
-                            <span className="sr-only">Approve</span>
+                            <span className="sr-only">Approve and add to public songs</span>
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="text-red-500"
                             onClick={() => handleReject(submission.id)}
+                            disabled={actionLoading}
+                            title="Reject submission"
                           >
                             <X className="h-4 w-4" />
-                            <span className="sr-only">Reject</span>
+                            <span className="sr-only">Reject submission</span>
                           </Button>
                         </>
                       )}
@@ -284,6 +350,7 @@ export default function SubmissionsPage() {
                         size="icon"
                         className="text-red-500"
                         onClick={() => confirmDelete(submission)}
+                        disabled={actionLoading}
                       >
                         <Trash2 className="h-4 w-4" />
                         <span className="sr-only">Delete</span>
@@ -306,11 +373,22 @@ export default function SubmissionsPage() {
                 {selectedSubmission.songTitle} by {selectedSubmission.artistName}
               </DialogTitle>
               <DialogDescription>
-                Album: {selectedSubmission.albumName} • Genre: {selectedSubmission.genre} • Language:{" "}
+                Album: {selectedSubmission.albumName || "N/A"} • Genre: {selectedSubmission.genre} • Language:{" "}
                 {selectedSubmission.language}
               </DialogDescription>
             </DialogHeader>
-            <div className="max-h-[60vh] overflow-y-auto whitespace-pre-line border p-4 rounded-md">{mockLyrics}</div>
+            {selectedSubmission.imageUrl && (
+              <div className="flex justify-center mb-4">
+                <img 
+                  src={selectedSubmission.imageUrl} 
+                  alt={`${selectedSubmission.songTitle} cover`} 
+                  className="h-48 w-48 rounded-md object-cover"
+                />
+              </div>
+            )}
+            <div className="max-h-[60vh] overflow-y-auto whitespace-pre-line border p-4 rounded-md">
+              {selectedSubmission.lyrics || "No lyrics available"}
+            </div>
             <DialogFooter className="flex justify-between sm:justify-between">
               <div className="flex space-x-2">
                 {selectedSubmission.status === "pending" && (
@@ -322,9 +400,19 @@ export default function SubmissionsPage() {
                         handleApprove(selectedSubmission.id)
                         setIsPreviewOpen(false)
                       }}
+                      disabled={actionLoading}
                     >
-                      <Check className="mr-2 h-4 w-4" />
-                      Approve
+                      {actionLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Approving...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="mr-2 h-4 w-4" />
+                          Approve & Add to Songs
+                        </>
+                      )}
                     </Button>
                     <Button
                       variant="outline"
@@ -333,9 +421,19 @@ export default function SubmissionsPage() {
                         handleReject(selectedSubmission.id)
                         setIsPreviewOpen(false)
                       }}
+                      disabled={actionLoading}
                     >
-                      <X className="mr-2 h-4 w-4" />
-                      Reject
+                      {actionLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Rejecting...
+                        </>
+                      ) : (
+                        <>
+                          <X className="mr-2 h-4 w-4" />
+                          Reject
+                        </>
+                      )}
                     </Button>
                   </>
                 )}
@@ -363,8 +461,19 @@ export default function SubmissionsPage() {
               <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={() => handleDelete(selectedSubmission.id)}>
-                Delete
+              <Button 
+                variant="destructive" 
+                onClick={() => handleDelete(selectedSubmission.id)}
+                disabled={actionLoading}
+              >
+                {actionLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete"
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
