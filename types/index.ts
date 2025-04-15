@@ -14,17 +14,18 @@ export interface Submission {
 
 export interface Song {
   id: string;
-  songTitle: string;
-  artistName: string;
-  albumName: string;
+  title: string;
+  artist: string;
+  album: string;
   releaseDate: string;
   genre: string;
   language: string;
   lyrics: string;
-  contributors: string;
-  notes: string;
-  imageUrl: string | null;
+  views?: number;
+  imageUrl?: string;
   duration?: string;
+  createdAt?: any;
+  updatedAt?: any;
 }
 
 export interface Artist {
