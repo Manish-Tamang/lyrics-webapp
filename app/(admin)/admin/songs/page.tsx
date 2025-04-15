@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { PlusCircle, Search, Edit, Trash2, Eye } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { PlusCircle, Search, Edit, Trash2, Eye, Image as ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -18,149 +18,89 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
+import { db, storage } from "@/lib/firebase/config"
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  serverTimestamp
+} from "firebase/firestore"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
+import { toast } from "sonner"
 
-// Mock data for songs
-const mockSongs = [
-  {
-    id: "1",
-    title: "Midnight Dreams",
-    artist: "Luna Eclipse",
-    album: "Lunar Phase",
-    genre: "Pop",
-    language: "English",
-    releaseDate: "2023-01-15",
-    views: 12453,
-  },
-  {
-    id: "2",
-    title: "Ocean Waves",
-    artist: "Coastal Sounds",
-    album: "Seaside Melodies",
-    genre: "Indie",
-    language: "English",
-    releaseDate: "2023-02-22",
-    views: 8765,
-  },
-  {
-    id: "3",
-    title: "Mountain High",
-    artist: "Alpine Echoes",
-    album: "Summit",
-    genre: "Folk",
-    language: "English",
-    releaseDate: "2023-03-10",
-    views: 5432,
-  },
-  {
-    id: "4",
-    title: "City Lights",
-    artist: "Urban Vibes",
-    album: "Metropolis",
-    genre: "Electronic",
-    language: "English",
-    releaseDate: "2023-04-05",
-    views: 9876,
-  },
-  {
-    id: "5",
-    title: "Desert Wind",
-    artist: "Sandy Tunes",
-    album: "Oasis",
-    genre: "World",
-    language: "Spanish",
-    releaseDate: "2023-05-18",
-    views: 3456,
-  },
-  {
-    id: "6",
-    title: "Rainy Day",
-    artist: "Weather Patterns",
-    album: "Seasons",
-    genre: "Jazz",
-    language: "English",
-    releaseDate: "2023-06-30",
-    views: 7654,
-  },
-  {
-    id: "7",
-    title: "Starlight",
-    artist: "Cosmic Harmony",
-    album: "Galaxy",
-    genre: "Ambient",
-    language: "Instrumental",
-    releaseDate: "2023-07-12",
-    views: 4321,
-  },
-]
+// Song type definition
+interface Song {
+  id: string;
+  title: string;
+  artist: string;
+  album: string;
+  genre: string;
+  language: string;
+  releaseDate: string;
+  views: number;
+  lyrics?: string;
+  imageUrl?: string;
+  createdAt?: any;
+  updatedAt?: any;
+}
 
-// Mock lyrics for preview
-const mockLyrics = `Verse 1:
-Walking through the midnight streets
-Shadows dancing at my feet
-City lights blur in the rain
-Memories flood back again
+// Artist type definition
+interface Artist {
+  id: string;
+  name: string;
+  bio: string;
+  songCount: number;
+  albumCount: number;
+  imageUrl: string;
+}
 
-Chorus:
-In the echo of your voice
-I find myself, I have no choice
-Midnight dreams that never fade
-Promises we never made
+// Genre options
+const genreOptions = [
+  "Pop", "Love", "Rock", "Hip Hop", "Electronic", "Indie", "Folk",
+  "R&B", "Jazz", "Classical", "Country", "World", "Ambient"
+];
 
-Verse 2:
-Stars above guide my way
-Through the night into the day
-Time stands still when I'm with you
-In this world we make anew
+// Language options
+const languageOptions = [
+  "English", "Nepali", "Spanish", "French", "German", "Italian",
+  "Portuguese", "Japanese", "Korean", "Chinese", "Instrumental"
+];
 
-Chorus:
-In the echo of your voice
-I find myself, I have no choice
-Midnight dreams that never fade
-Promises we never made
+const TableSkeleton = () => (
+  <TableRow>
+    <TableCell><Skeleton className="h-10 w-10 rounded-md" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
+    <TableCell className="text-right">
+      <div className="flex justify-end space-x-1">
+        <Skeleton className="h-8 w-8 rounded-md" />
+        <Skeleton className="h-8 w-8 rounded-md" />
+        <Skeleton className="h-8 w-8 rounded-md" />
+      </div>
+    </TableCell>
+  </TableRow>
+);
 
-Bridge:
-The moon hangs low, the night is deep
-Secrets that we choose to keep
-In the darkness we are free
-Just the stars, just you and me
-
-Chorus:
-In the echo of your voice
-I find myself, I have no choice
-Midnight dreams that never fade
-Promises we never made
-Promises we never made`
-
-// Mock artists for dropdown
-const mockArtistOptions = [
-  { value: "Luna Eclipse", label: "Luna Eclipse" },
-  { value: "Coastal Sounds", label: "Coastal Sounds" },
-  { value: "Alpine Echoes", label: "Alpine Echoes" },
-  { value: "Urban Vibes", label: "Urban Vibes" },
-  { value: "Sandy Tunes", label: "Sandy Tunes" },
-  { value: "Weather Patterns", label: "Weather Patterns" },
-  { value: "Cosmic Harmony", label: "Cosmic Harmony" },
-]
-
-// Mock albums for dropdown
-const mockAlbumOptions = [
-  { value: "Lunar Phase", label: "Lunar Phase" },
-  { value: "Seaside Melodies", label: "Seaside Melodies" },
-  { value: "Summit", label: "Summit" },
-  { value: "Metropolis", label: "Metropolis" },
-  { value: "Oasis", label: "Oasis" },
-  { value: "Seasons", label: "Seasons" },
-  { value: "Galaxy", label: "Galaxy" },
-]
 
 export default function SongsPage() {
-  const [songs, setSongs] = useState(mockSongs)
+  const [songs, setSongs] = useState<Song[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
-  const [selectedSong, setSelectedSong] = useState<any>(null)
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null)
   const [newSong, setNewSong] = useState({
     title: "",
     artist: "",
@@ -169,7 +109,59 @@ export default function SongsPage() {
     language: "",
     releaseDate: "",
     lyrics: "",
+    imageUrl: "",
   })
+  const [loading, setLoading] = useState(true)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [artists, setArtists] = useState<Artist[]>([])
+  const [albums, setAlbums] = useState<string[]>([])
+  const addImageRef = useRef<HTMLInputElement>(null)
+  const editImageRef = useRef<HTMLInputElement>(null)
+
+  // Fetch songs from Firebase
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+
+        // Fetch songs
+        const songsQuery = query(collection(db, "songs"), orderBy("createdAt", "desc"))
+        const songsSnapshot = await getDocs(songsQuery)
+
+        const songsData: Song[] = []
+        const albumsSet = new Set<string>()
+
+        songsSnapshot.forEach((doc) => {
+          const songData = { id: doc.id, ...doc.data() } as Song
+          songsData.push(songData)
+
+          if (songData.album) albumsSet.add(songData.album)
+        })
+
+        setSongs(songsData)
+        setAlbums(Array.from(albumsSet))
+
+        // Fetch artists
+        const artistsQuery = query(collection(db, "artists"), orderBy("name"))
+        const artistsSnapshot = await getDocs(artistsQuery)
+
+        const artistsData: Artist[] = []
+        artistsSnapshot.forEach((doc) => {
+          const artistData = { id: doc.id, ...doc.data() } as Artist
+          artistsData.push(artistData)
+        })
+
+        setArtists(artistsData)
+      } catch (error) {
+        console.error("Error fetching data:", error)
+        toast.error("Failed to load data")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   const filteredSongs = songs.filter(
     (song) =>
@@ -177,38 +169,141 @@ export default function SongsPage() {
       song.artist.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const handleAddSong = () => {
-    const id = (songs.length + 1).toString()
-    setSongs([
-      ...songs,
-      {
-        id,
+  const uploadImage = async (file: File, songId: string): Promise<string> => {
+    try {
+      setUploadingImage(true)
+      const storageRef = ref(storage, `songs/${songId}/${file.name}`)
+      await uploadBytes(storageRef, file)
+      const downloadURL = await getDownloadURL(storageRef)
+      return downloadURL
+    } catch (error) {
+      console.error("Error uploading image:", error)
+      toast.error("Failed to upload image")
+      throw error
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  const handleAddSong = async () => {
+    try {
+      setLoading(true)
+
+      // Validate required fields
+      if (!newSong.title || !newSong.artist) {
+        toast.error("Title and artist are required")
+        return
+      }
+
+      const songData = {
         title: newSong.title,
         artist: newSong.artist,
         album: newSong.album,
         genre: newSong.genre,
         language: newSong.language,
         releaseDate: newSong.releaseDate,
+        lyrics: newSong.lyrics,
         views: 0,
-      },
-    ])
-    setNewSong({
-      title: "",
-      artist: "",
-      album: "",
-      genre: "",
-      language: "",
-      releaseDate: "",
-      lyrics: "",
-    })
-    setIsAddDialogOpen(false)
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }
+
+      const docRef = await addDoc(collection(db, "songs"), songData)
+
+      let imageUrl = newSong.imageUrl
+
+      if (addImageRef.current?.files && addImageRef.current.files[0]) {
+        try {
+          imageUrl = await uploadImage(addImageRef.current.files[0], docRef.id)
+          await updateDoc(doc(db, "songs", docRef.id), { imageUrl })
+        } catch (error) {
+          console.error("Error uploading image:", error)
+        }
+      }
+
+      // Add the new song to the state with the generated ID
+      const newSongWithId = {
+        ...songData,
+        id: docRef.id,
+        views: 0,
+        imageUrl
+      } as Song
+
+      setSongs([newSongWithId, ...songs])
+
+      // Update albums list if needed
+      if (newSong.album && !albums.includes(newSong.album)) {
+        setAlbums([...albums, newSong.album])
+      }
+
+      // Reset form
+      setNewSong({
+        title: "",
+        artist: "",
+        album: "",
+        genre: "",
+        language: "",
+        releaseDate: "",
+        lyrics: "",
+        imageUrl: "",
+      })
+
+      if (addImageRef.current) {
+        addImageRef.current.value = ""
+      }
+
+      setIsAddDialogOpen(false)
+      toast.success("Song added successfully")
+    } catch (error) {
+      console.error("Error adding song:", error)
+      toast.error("Failed to add song")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleEditSong = () => {
-    setSongs(
-      songs.map((song) =>
-        song.id === selectedSong.id
-          ? {
+  const handleEditSong = async () => {
+    if (!selectedSong) return
+
+    try {
+      setLoading(true)
+
+      // Validate required fields
+      if (!selectedSong.title || !selectedSong.artist) {
+        toast.error("Title and artist are required")
+        return
+      }
+
+      let imageUrl = selectedSong.imageUrl
+
+      if (editImageRef.current?.files && editImageRef.current.files[0]) {
+        try {
+          imageUrl = await uploadImage(editImageRef.current.files[0], selectedSong.id)
+        } catch (error) {
+          console.error("Error uploading image:", error)
+        }
+      }
+
+      const songRef = doc(db, "songs", selectedSong.id)
+
+      const songData = {
+        title: selectedSong.title,
+        artist: selectedSong.artist,
+        album: selectedSong.album,
+        genre: selectedSong.genre,
+        language: selectedSong.language,
+        releaseDate: selectedSong.releaseDate,
+        imageUrl,
+        updatedAt: serverTimestamp()
+      }
+
+      await updateDoc(songRef, songData)
+
+      // Update the songs state
+      setSongs(
+        songs.map((song) =>
+          song.id === selectedSong.id
+            ? {
               ...song,
               title: selectedSong.title,
               artist: selectedSong.artist,
@@ -216,29 +311,59 @@ export default function SongsPage() {
               genre: selectedSong.genre,
               language: selectedSong.language,
               releaseDate: selectedSong.releaseDate,
+              imageUrl,
             }
-          : song,
-      ),
-    )
-    setIsEditDialogOpen(false)
+            : song,
+        ),
+      )
+
+      // Update albums list if needed
+      if (selectedSong.album && !albums.includes(selectedSong.album)) {
+        setAlbums([...albums, selectedSong.album])
+      }
+
+      if (editImageRef.current) {
+        editImageRef.current.value = ""
+      }
+
+      setIsEditDialogOpen(false)
+      toast.success("Song updated successfully")
+    } catch (error) {
+      console.error("Error updating song:", error)
+      toast.error("Failed to update song")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleDeleteSong = (id: string) => {
-    setSongs(songs.filter((song) => song.id !== id))
-    setIsDeleteDialogOpen(false)
+  const handleDeleteSong = async (id: string) => {
+    try {
+      setLoading(true)
+
+      await deleteDoc(doc(db, "songs", id))
+
+      setSongs(songs.filter((song) => song.id !== id))
+      setIsDeleteDialogOpen(false)
+      toast.success("Song deleted successfully")
+    } catch (error) {
+      console.error("Error deleting song:", error)
+      toast.error("Failed to delete song")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const openEditDialog = (song: any) => {
+  const openEditDialog = (song: Song) => {
     setSelectedSong(song)
     setIsEditDialogOpen(true)
   }
 
-  const openDeleteDialog = (song: any) => {
+  const openDeleteDialog = (song: Song) => {
     setSelectedSong(song)
     setIsDeleteDialogOpen(true)
   }
 
-  const openPreviewDialog = (song: any) => {
+  const openPreviewDialog = (song: Song) => {
     setSelectedSong(song)
     setIsPreviewOpen(true)
   }
@@ -248,13 +373,15 @@ export default function SongsPage() {
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <h1 className="text-2xl font-bold tracking-tight">Songs Management</h1>
         <div className="flex items-center space-x-2">
-          <Input
-            placeholder="Search songs..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-[250px]"
-            icon={<Search className="h-4 w-4" />}
-          />
+          <div className="relative">
+            <Input
+              placeholder="Search songs..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-[250px] pl-9"
+            />
+            <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+          </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -285,9 +412,9 @@ export default function SongsPage() {
                         <SelectValue placeholder="Select artist" />
                       </SelectTrigger>
                       <SelectContent>
-                        {mockArtistOptions.map((artist) => (
-                          <SelectItem key={artist.value} value={artist.value}>
-                            {artist.label}
+                        {artists.map((artist) => (
+                          <SelectItem key={artist.id} value={artist.name}>
+                            {artist.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -302,11 +429,12 @@ export default function SongsPage() {
                         <SelectValue placeholder="Select album" />
                       </SelectTrigger>
                       <SelectContent>
-                        {mockAlbumOptions.map((album) => (
-                          <SelectItem key={album.value} value={album.value}>
-                            {album.label}
+                        {albums.map((album) => (
+                          <SelectItem key={album} value={album}>
+                            {album}
                           </SelectItem>
                         ))}
+                        <SelectItem value="new">+ Add New Album</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -328,17 +456,11 @@ export default function SongsPage() {
                         <SelectValue placeholder="Select genre" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Pop">Pop</SelectItem>
-                        <SelectItem value="Rock">Rock</SelectItem>
-                        <SelectItem value="Hip Hop">Hip Hop</SelectItem>
-                        <SelectItem value="Electronic">Electronic</SelectItem>
-                        <SelectItem value="Indie">Indie</SelectItem>
-                        <SelectItem value="Folk">Folk</SelectItem>
-                        <SelectItem value="R&B">R&B</SelectItem>
-                        <SelectItem value="Jazz">Jazz</SelectItem>
-                        <SelectItem value="Classical">Classical</SelectItem>
-                        <SelectItem value="Country">Country</SelectItem>
-                        <SelectItem value="World">World</SelectItem>
+                        {genreOptions.map((genre) => (
+                          <SelectItem key={genre} value={genre}>
+                            {genre}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -352,16 +474,11 @@ export default function SongsPage() {
                         <SelectValue placeholder="Select language" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="English">English</SelectItem>
-                        <SelectItem value="Spanish">Spanish</SelectItem>
-                        <SelectItem value="French">French</SelectItem>
-                        <SelectItem value="German">German</SelectItem>
-                        <SelectItem value="Italian">Italian</SelectItem>
-                        <SelectItem value="Portuguese">Portuguese</SelectItem>
-                        <SelectItem value="Japanese">Japanese</SelectItem>
-                        <SelectItem value="Korean">Korean</SelectItem>
-                        <SelectItem value="Chinese">Chinese</SelectItem>
-                        <SelectItem value="Instrumental">Instrumental</SelectItem>
+                        {languageOptions.map((language) => (
+                          <SelectItem key={language} value={language}>
+                            {language}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -380,12 +497,37 @@ export default function SongsPage() {
                     "Chorus:" if possible.
                   </p>
                 </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="image">Song Cover Image</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      ref={addImageRef}
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => addImageRef.current?.click()}
+                      disabled={uploadingImage}
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Upload a cover image for the song (recommended for singles).
+                  </p>
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleAddSong}>Add Song</Button>
+                <Button onClick={handleAddSong} disabled={loading || uploadingImage}>
+                  {loading || uploadingImage ? "Adding..." : "Add Song"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -396,6 +538,7 @@ export default function SongsPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Cover</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Artist</TableHead>
               <TableHead>Album</TableHead>
@@ -407,15 +550,36 @@ export default function SongsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredSongs.length === 0 ? (
+            {loading ? (
+              <>
+                <TableSkeleton />
+                <TableSkeleton />
+                <TableSkeleton />
+                <TableSkeleton />
+                <TableSkeleton />
+              </>
+            ) : filteredSongs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center">
+                <TableCell colSpan={9} className="h-24 text-center">
                   No songs found.
                 </TableCell>
               </TableRow>
             ) : (
               filteredSongs.map((song) => (
                 <TableRow key={song.id}>
+                  <TableCell>
+                    {song.imageUrl ? (
+                      <img
+                        src={song.imageUrl}
+                        alt={`${song.title} cover`}
+                        className="h-10 w-10 rounded-md object-cover"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center">
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell className="font-medium">{song.title}</TableCell>
                   <TableCell>{song.artist}</TableCell>
                   <TableCell>{song.album}</TableCell>
@@ -470,7 +634,18 @@ export default function SongsPage() {
                 Album: {selectedSong.album} • Genre: {selectedSong.genre} • Language: {selectedSong.language}
               </DialogDescription>
             </DialogHeader>
-            <div className="max-h-[60vh] overflow-y-auto whitespace-pre-line border p-4 rounded-md">{mockLyrics}</div>
+            {selectedSong.imageUrl && (
+              <div className="flex justify-center mb-4">
+                <img
+                  src={selectedSong.imageUrl}
+                  alt={`${selectedSong.title} cover`}
+                  className="h-48 w-48 rounded-md object-cover"
+                />
+              </div>
+            )}
+            <div className="max-h-[60vh] overflow-y-auto whitespace-pre-line border p-4 rounded-md">
+              {selectedSong.lyrics || "No lyrics available"}
+            </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
                 Close
@@ -513,9 +688,9 @@ export default function SongsPage() {
                       <SelectValue placeholder="Select artist" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockArtistOptions.map((artist) => (
-                        <SelectItem key={artist.value} value={artist.value}>
-                          {artist.label}
+                      {artists.map((artist) => (
+                        <SelectItem key={artist.id} value={artist.name}>
+                          {artist.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -533,11 +708,12 @@ export default function SongsPage() {
                       <SelectValue placeholder="Select album" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockAlbumOptions.map((album) => (
-                        <SelectItem key={album.value} value={album.value}>
-                          {album.label}
+                      {albums.map((album) => (
+                        <SelectItem key={album} value={album}>
+                          {album}
                         </SelectItem>
                       ))}
+                      <SelectItem value="new">+ Add New Album</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -567,17 +743,11 @@ export default function SongsPage() {
                       <SelectValue placeholder="Select genre" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Pop">Pop</SelectItem>
-                      <SelectItem value="Rock">Rock</SelectItem>
-                      <SelectItem value="Hip Hop">Hip Hop</SelectItem>
-                      <SelectItem value="Electronic">Electronic</SelectItem>
-                      <SelectItem value="Indie">Indie</SelectItem>
-                      <SelectItem value="Folk">Folk</SelectItem>
-                      <SelectItem value="R&B">R&B</SelectItem>
-                      <SelectItem value="Jazz">Jazz</SelectItem>
-                      <SelectItem value="Classical">Classical</SelectItem>
-                      <SelectItem value="Country">Country</SelectItem>
-                      <SelectItem value="World">World</SelectItem>
+                      {genreOptions.map((genre) => (
+                        <SelectItem key={genre} value={genre}>
+                          {genre}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -591,16 +761,11 @@ export default function SongsPage() {
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="English">English</SelectItem>
-                      <SelectItem value="Spanish">Spanish</SelectItem>
-                      <SelectItem value="French">French</SelectItem>
-                      <SelectItem value="German">German</SelectItem>
-                      <SelectItem value="Italian">Italian</SelectItem>
-                      <SelectItem value="Portuguese">Portuguese</SelectItem>
-                      <SelectItem value="Japanese">Japanese</SelectItem>
-                      <SelectItem value="Korean">Korean</SelectItem>
-                      <SelectItem value="Chinese">Chinese</SelectItem>
-                      <SelectItem value="Instrumental">Instrumental</SelectItem>
+                      {languageOptions.map((language) => (
+                        <SelectItem key={language} value={language}>
+                          {language}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -611,15 +776,48 @@ export default function SongsPage() {
                   id="edit-lyrics"
                   placeholder="Enter song lyrics"
                   className="min-h-[300px]"
-                  defaultValue={mockLyrics}
+                  value={selectedSong.lyrics || ""}
+                  onChange={(e) => setSelectedSong({ ...selectedSong, lyrics: e.target.value })}
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-image">Song Cover Image</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="edit-image"
+                    type="file"
+                    accept="image/*"
+                    ref={editImageRef}
+                    className="flex-1"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => editImageRef.current?.click()}
+                    disabled={uploadingImage}
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+                {selectedSong.imageUrl && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <img
+                      src={selectedSong.imageUrl}
+                      alt={`${selectedSong.title} cover`}
+                      className="h-10 w-10 rounded-md object-cover"
+                    />
+                    <p className="text-xs text-muted-foreground">Current cover image</p>
+                  </div>
+                )}
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleEditSong}>Save Changes</Button>
+              <Button onClick={handleEditSong} disabled={loading || uploadingImage}>
+                {loading || uploadingImage ? "Saving..." : "Save Changes"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -640,8 +838,8 @@ export default function SongsPage() {
               <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={() => handleDeleteSong(selectedSong.id)}>
-                Delete
+              <Button variant="destructive" onClick={() => handleDeleteSong(selectedSong.id)} disabled={loading}>
+                {loading ? "Deleting..." : "Delete"}
               </Button>
             </DialogFooter>
           </DialogContent>
