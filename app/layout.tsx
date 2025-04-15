@@ -1,5 +1,6 @@
 import './globals.css';
 import type React from "react";
+import { Toaster } from "sonner";
 
 export const metadata = {
     title: 'LyricVerse',
@@ -11,7 +12,10 @@ export default function RootLayout({ children }: {
 }) {
     return (
         <html lang="en">
-            <body>{children}</body>
+            <body>
+                {children}
+                <Toaster position="top-right" />
+            </body>
         </html>
     );
 }
