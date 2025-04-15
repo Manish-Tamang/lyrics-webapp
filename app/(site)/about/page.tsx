@@ -72,29 +72,29 @@ export default function AboutPage() {
         <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
           {[
             {
-              name: "Alex Rivera",
+              name: "Manish Tamang",
               role: "Founder & CEO",
               bio: "Music enthusiast with a background in web development and a passion for lyrics.",
-              image: "/placeholder.svg?height=200&width=200",
+              image: "https://www.manishtamang.com/profile.png",
             },
             {
-              name: "Jordan Chen",
-              role: "Lead Developer",
+              name: "Imohang Chamling Rai",
+              role: "Moderator",
               bio: "Full-stack developer with experience in building community-driven platforms.",
-              image: "/placeholder.svg?height=200&width=200",
+              image: "/imo.jpg",
             },
             {
-              name: "Taylor Morgan",
-              role: "Content Director",
+              name: "Abish Karki",
+              role: "Admin",
               bio: "Former music journalist with a keen eye for lyrical detail and artist relations.",
-              image: "/placeholder.svg?height=200&width=200",
+              image: "/abish.webp",
             },
           ].map((member) => (
             <div key={member.name} className="flex flex-col items-center text-center">
-              <div className="relative h-32 w-32 overflow-hidden rounded-full">
+              <div className="relative h-32 w-32 overflow-hidden rounded-[4px]">
                 <Image src={member.image || "/placeholder.svg"} alt={member.name} fill className="object-cover" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold">{member.name}</h3>
+              <h3 className="mt-4 text-lg font-karla">{member.name}</h3>
               <p className="text-sm text-primary-foreground">{member.role}</p>
               <p className="mt-2 text-sm text-muted-foreground">{member.bio}</p>
             </div>
