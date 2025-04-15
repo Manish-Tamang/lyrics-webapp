@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Metadata } from "next";
@@ -10,12 +11,61 @@ import { Badge } from "@/components/ui/badge";
 import LyricsDisplay from "@/components/lyrics-display";
 import RecentSongs from "@/components/recent-songs";
 import { Song } from "@/types";
+import { db } from "@/lib/firebase/config";
+import { collection, getDocs, query, orderBy, limit, where } from "firebase/firestore";
 
 interface SongClientProps {
     song: Song;
 }
 
+// Define the RecentSong interface
+interface RecentSong {
+    id: string;
+    title: string;
+    artist: string;
+    coverImage: string;
+}
+
 const SongClient: React.FC<SongClientProps> = ({ song }) => {
+    const [recentSongs, setRecentSongs] = useState<RecentSong[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchRecentSongs = async () => {
+            try {
+                setLoading(true);
+                // Fetch 5 recent songs, excluding the current song
+                const songsQuery = query(
+                    collection(db, "songs"),
+                    where("id", "!=", song.id),
+                    orderBy("id"),
+                    orderBy("createdAt", "desc"),
+                    limit(5)
+                );
+                
+                const querySnapshot = await getDocs(songsQuery);
+                const songs: RecentSong[] = [];
+                
+                querySnapshot.forEach((doc) => {
+                    const songData = doc.data();
+                    songs.push({
+                        id: doc.id,
+                        title: songData.title,
+                        artist: songData.artist,
+                        coverImage: songData.imageUrl || "/placeholder.svg"
+                    });
+                });
+                
+                setRecentSongs(songs);
+            } catch (error) {
+                console.error("Error fetching recent songs:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRecentSongs();
+    }, [song.id]);
 
     return (
         <div className="space-y-8">
@@ -65,6 +115,13 @@ const SongClient: React.FC<SongClientProps> = ({ song }) => {
                 </div>
             </div>
             <LyricsDisplay lyrics={song.lyrics} />
+            
+            {!loading && recentSongs.length > 0 && (
+                <div className="mt-8">
+                    <h2 className="mb-4 text-2xl font-bold">More Songs</h2>
+                    <RecentSongs songs={recentSongs} title="" viewAllLink="" />
+                </div>
+            )}
         </div>
     );
 };
