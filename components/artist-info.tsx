@@ -11,7 +11,6 @@ interface ArtistInfoProps {
   stats: {
     songs: number
     albums: number
-    followers: string
   }
 }
 
@@ -20,7 +19,7 @@ export default function ArtistInfo({ name, bio, image, genres, stats }: ArtistIn
     <Card className="rounded-[4px]">
       <CardContent className="p-6">
         <div className="flex flex-col items-center gap-6 md:flex-row">
-          <div className="relative h-32 w-32 overflow-hidden rounded-full border-4 border-primary md:h-40 md:w-40">
+          <div className="relative h-32 w-32 overflow-hidden rounded-lg border-4 border-primary md:h-40 md:w-40">
             <Image src={image || "/placeholder.svg"} alt={name} fill className="object-cover" />
           </div>
 
@@ -43,10 +42,6 @@ export default function ArtistInfo({ name, bio, image, genres, stats }: ArtistIn
               <div>
                 <p className="font-semibold">{stats.albums}</p>
                 <p className="text-muted-foreground">Albums</p>
-              </div>
-              <div>
-                <p className="font-semibold">{stats.followers}</p>
-                <p className="text-muted-foreground">Followers</p>
               </div>
             </div>
 
