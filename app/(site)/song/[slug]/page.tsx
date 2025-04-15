@@ -1,4 +1,3 @@
-// app/song/[slug]/page.tsx
 
 import type { Metadata } from "next";
 import { db } from "@/lib/firebase/config";
@@ -8,7 +7,7 @@ import SongClient from "./SongClient";
 
 interface SongPageProps {
   params: {
-    slug: string; // The document ID from Firebase will be the slug
+    slug: string; 
   };
 }
 
@@ -16,12 +15,12 @@ export async function generateMetadata({ params }: SongPageProps): Promise<Metad
   const songId = params.slug;
 
   try {
-    const songDoc = await getDoc(doc(db, "lyrics", songId));
+    const songDoc = await getDoc(doc(db, "songs", songId));
     if (songDoc.exists()) {
       const song = songDoc.data() as Song;
       return {
-        title: `${song.songTitle} by ${song.artistName} | LyricVerse`,
-        description: `View lyrics for ${song.songTitle} by ${song.artistName}`,
+        title: `${song.title} by ${song.artist} | LyricVerse`,
+        description: `View lyrics for ${song.title} by ${song.artist}`,
       };
     } else {
       return {
@@ -41,10 +40,10 @@ export default async function SongPage({ params }: SongPageProps) {
   const songId = params.slug;
 
   try {
-    const songDoc = await getDoc(doc(db, "lyrics", songId));
+    const songDoc = await getDoc(doc(db, "songs", songId));
     if (songDoc.exists()) {
       const song = { id: songDoc.id, ...songDoc.data() } as Song;
-      return <SongClient song={song} />; // Pass the song data to the client component
+      return <SongClient song={song} />; 
     } else {
       return (
         <div className="flex flex-col items-center justify-center py-12 text-center">
