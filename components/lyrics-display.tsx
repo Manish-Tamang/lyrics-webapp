@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 interface LyricsDisplayProps {
   lyrics: string
-  contributors?: string[]
+  contributors?: string[] | string
 }
 
-export default function LyricsDisplay({ lyrics, contributors = [] }: LyricsDisplayProps) {
+export default function LyricsDisplay({ lyrics, contributors }: LyricsDisplayProps) {
   const [copied, setCopied] = useState(false)
   const [liked, setLiked] = useState(false)
 
@@ -19,6 +19,13 @@ export default function LyricsDisplay({ lyrics, contributors = [] }: LyricsDispl
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  // Convert contributors to array if it's a string
+  const contributorsArray = Array.isArray(contributors) 
+    ? contributors 
+    : contributors 
+      ? [contributors] 
+      : []
 
   return (
     <Card className="rounded-[4px]">
@@ -47,10 +54,10 @@ export default function LyricsDisplay({ lyrics, contributors = [] }: LyricsDispl
         <div className="whitespace-pre-line text-lg leading-relaxed">{lyrics}</div>
       </CardContent>
 
-      {contributors.length > 0 && (
+      {contributorsArray.length > 0 && (
         <div className="border-t p-4">
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium">Contributors:</span> {contributors.join(", ")}
+            <span className="font-medium">Contributors:</span> {contributorsArray.join(", ")}
           </p>
         </div>
       )}
