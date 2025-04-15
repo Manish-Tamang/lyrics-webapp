@@ -33,7 +33,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${karla.className} ${bethany.variable} font-karla bg-[#FAFAFA]`}>
         <Navbar />
-        <main className="mx-auto max-w-[670px] px-4 py-6">{children}</main>
+        <main className="mx-auto max-w-[720px] px-4 py-6">{children}</main>
         <Footer />
       </body>
     </html>
