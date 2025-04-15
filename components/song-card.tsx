@@ -1,8 +1,8 @@
 import Link from "next/link"
-import Image from "next/image"
 import { Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { BlurImage } from "@/components/blur-image"
 
 interface SongCardProps {
   id: string
@@ -12,14 +12,15 @@ interface SongCardProps {
   coverImage: string
   duration?: string
   genre?: string
+  lyrics?: string
 }
 
-export default function SongCard({ id, title, artist, album, coverImage, duration, genre }: SongCardProps) {
+export default function SongCard({ id, title, artist, album, coverImage, duration, genre, lyrics }: SongCardProps) {
   return (
     <Link href={`/song/${id}`}>
       <Card className="group overflow-hidden rounded-[4px] transition-colors hover:border-primary">
         <div className="relative aspect-square overflow-hidden">
-          <Image
+          <BlurImage
             src={coverImage || "/placeholder.svg"}
             alt={`${title} by ${artist}`}
             fill
