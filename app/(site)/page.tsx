@@ -3,11 +3,70 @@ import { ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import SongCard from "@/components/song-card"
 import RecentSongs from "@/components/recent-songs"
-import { getRecentSongs, getPopularSongs } from "@/lib/mock-data"
+import { db } from "@/lib/firebase/config"
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore"
 
-export default function Home() {
-  const recentSongs = getRecentSongs(3)
-  const popularSongs = getPopularSongs(5)
+// Define the Song interface
+interface Song {
+  id: string
+  title: string
+  artist: string
+  album?: string
+  imageUrl?: string
+  duration?: string
+  genre?: string
+  releaseDate?: string
+  lyrics?: string
+}
+
+async function getRecentSongs(count = 3): Promise<Song[]> {
+  try {
+    const songsQuery = query(
+      collection(db, "songs"),
+      orderBy("createdAt", "desc"),
+      limit(count)
+    )
+    const querySnapshot = await getDocs(songsQuery)
+
+    const songs: Song[] = []
+    querySnapshot.forEach((doc) => {
+      const songData = { id: doc.id, ...doc.data() } as Song
+      songs.push(songData)
+    })
+
+    return songs
+  } catch (error) {
+    console.error("Error fetching recent songs:", error)
+    return []
+  }
+}
+
+// Function to fetch popular songs from Firebase
+async function getPopularSongs(count = 5): Promise<Song[]> {
+  try {
+    const songsQuery = query(
+      collection(db, "songs"),
+      orderBy("views", "desc"),
+      limit(count)
+    )
+    const querySnapshot = await getDocs(songsQuery)
+
+    const songs: Song[] = []
+    querySnapshot.forEach((doc) => {
+      const songData = { id: doc.id, ...doc.data() } as Song
+      songs.push(songData)
+    })
+
+    return songs
+  } catch (error) {
+    console.error("Error fetching popular songs:", error)
+    return []
+  }
+}
+
+export default async function Home() {
+  const recentSongs = await getRecentSongs(3)
+  const popularSongs = await getPopularSongs(5)
 
   return (
     <div className="space-y-10">
@@ -34,7 +93,7 @@ export default function Home() {
       </section>
       <section>
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Featured Songs</h2>
+          <h2 className="text-2xl font-bold">Recent Songs</h2>
           <Link href="/song" className="flex items-center text-sm font-medium text-primary-foreground hover:underline">
             View all <ChevronRight className="ml-1 h-4 w-4" />
           </Link>
@@ -48,7 +107,7 @@ export default function Home() {
               title={song.title}
               artist={song.artist}
               album={song.album}
-              coverImage={song.coverImage}
+              coverImage={song.imageUrl || "/placeholder.svg"}
               duration={song.duration}
               genre={song.genre}
             />
@@ -56,7 +115,16 @@ export default function Home() {
         </div>
       </section>
       <section>
-        <RecentSongs songs={popularSongs} title="Popular Songs" viewAllLink="/song" />
+        <RecentSongs 
+          songs={popularSongs.map(song => ({
+            id: song.id,
+            title: song.title,
+            artist: song.artist,
+            coverImage: song.imageUrl || "/placeholder.svg"
+          }))} 
+          title="Popular Songs" 
+          viewAllLink="/song" 
+        />
       </section>
       <section className="rounded-[4px] bg-muted p-6 text-center">
         <h2 className="text-xl font-bold md:text-2xl">Join Our Community</h2>
