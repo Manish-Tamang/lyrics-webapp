@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Music, Upload, AlertCircle } from "lucide-react";
+import { useState, useRef } from "react";
+import { Music, Upload, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,18 +9,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { db, storage } from "@/lib/firebase/config";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { toast } from "sonner";
 
 export default function SubmitLyricsForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    setUploadProgress(null);
 
     const form = e.target as HTMLFormElement;
     const songTitle = (form.elements.namedItem("song-title") as HTMLInputElement).value;
@@ -37,13 +41,23 @@ export default function SubmitLyricsForm() {
     let imageUrl = null;
 
     try {
-      if (coverImageFile) {
-        const storageRef = ref(storage, `covers/${artistName}-${songTitle}-${coverImageFile.name}`);
-        await uploadBytes(storageRef, coverImageFile);
-        imageUrl = await getDownloadURL(storageRef);
+      // Validate file size if an image is uploaded
+      if (coverImageFile && coverImageFile.size > 2 * 1024 * 1024) {
+        throw new Error("Cover image must be less than 2MB");
       }
 
-      await addDoc(collection(db, "lyricsSubmissions"), {
+      // Upload image if provided
+      if (coverImageFile) {
+        setUploadProgress(0);
+        const storageRef = ref(storage, `covers/${Date.now()}-${artistName}-${songTitle}-${coverImageFile.name}`);
+        await uploadBytes(storageRef, coverImageFile);
+        setUploadProgress(50);
+        imageUrl = await getDownloadURL(storageRef);
+        setUploadProgress(100);
+      }
+
+      // Add document to Firestore
+      const docRef = await addDoc(collection(db, "lyricsSubmissions"), {
         songTitle,
         artistName,
         albumName,
@@ -53,19 +67,29 @@ export default function SubmitLyricsForm() {
         lyrics,
         contributors,
         notes,
-        imageUrl
+        imageUrl,
+        status: "pending", // For admin review
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       });
 
       setIsSubmitting(false);
       setIsSuccess(true);
+      toast.success("Lyrics submitted successfully!");
 
+      // Reset form after 3 seconds
       setTimeout(() => {
         setIsSuccess(false);
-        form.reset();
+        if (formRef.current) {
+          formRef.current.reset();
+        }
       }, 3000);
     } catch (err: any) {
       setIsSubmitting(false);
-      setError(err.message || "An error occurred while submitting lyrics.");
+      setUploadProgress(null);
+      const errorMessage = err.message || "An error occurred while submitting lyrics.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -89,7 +113,7 @@ export default function SubmitLyricsForm() {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Song Information</h2>
 
@@ -199,6 +223,12 @@ export default function SubmitLyricsForm() {
             <Label htmlFor="cover-image">Cover Image</Label>
             <div className="flex items-center gap-2">
               <Input id="cover-image" name="cover-image" type="file" accept="image/*" className="rounded-[4px]" />
+              {uploadProgress !== null && (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-xs">{uploadProgress}%</span>
+                </div>
+              )}
             </div>
             <p className="text-xs text-muted-foreground">Upload album or single cover art (optional). Max size: 2MB.</p>
           </div>
@@ -228,7 +258,14 @@ export default function SubmitLyricsForm() {
               Cancel
             </Button>
             <Button type="submit" className="rounded-[4px]" disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit Lyrics"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Lyrics"
+              )}
             </Button>
           </div>
         </div>
