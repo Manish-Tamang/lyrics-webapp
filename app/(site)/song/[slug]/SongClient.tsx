@@ -1,4 +1,3 @@
-// app/song/[slug]/SongClient.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -29,27 +28,33 @@ const SongClient: React.FC<SongClientProps> = ({ song }) => {
             </div>
             <div className="flex flex-col gap-6 md:flex-row">
                 <div className="relative aspect-square w-full overflow-hidden rounded-[4px] border md:w-48">
-                    <Image src={song.imageUrl || "/placeholder.svg"} alt={song.songTitle} fill className="object-cover" />
+                    <Image src={song.imageUrl || "/placeholder.svg"} alt={song.title} fill className="object-cover" />
                 </div>
                 <div className="flex-1">
-                    <h1 className="text-3xl font-bold">{song.songTitle}</h1>
+                    <h1 className="text-3xl font-bold">{song.title}</h1>
                     <p className="mt-1 text-xl">
-                        {song.artistName}
+                        {song.artist}
                     </p>
                     <div className="mt-4 flex flex-wrap gap-3">
                         <Badge className="rounded-[4px]">{song.genre}</Badge>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                            <Disc className="mr-1 h-4 w-4" />
-                            {song.albumName}
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                            <Clock className="mr-1 h-4 w-4" />
-                            {song.duration}
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                            <Calendar className="mr-1 h-4 w-4" />
-                            {song.releaseDate}
-                        </div>
+                        {song.album && (
+                            <div className="flex items-center text-sm text-muted-foreground">
+                                <Disc className="mr-1 h-4 w-4" />
+                                {song.album}
+                            </div>
+                        )}
+                        {song.duration && (
+                            <div className="flex items-center text-sm text-muted-foreground">
+                                <Clock className="mr-1 h-4 w-4" />
+                                {song.duration}
+                            </div>
+                        )}
+                        {song.releaseDate && (
+                            <div className="flex items-center text-sm text-muted-foreground">
+                                <Calendar className="mr-1 h-4 w-4" />
+                                {song.releaseDate}
+                            </div>
+                        )}
                     </div>
                     <div className="mt-6 flex gap-3">
                         <Button className="rounded-[4px]">Play Song</Button>
@@ -59,7 +64,7 @@ const SongClient: React.FC<SongClientProps> = ({ song }) => {
                     </div>
                 </div>
             </div>
-            <LyricsDisplay lyrics={song.lyrics} contributors={song.contributors?.split(",")} />
+            <LyricsDisplay lyrics={song.lyrics} />
         </div>
     );
 };
