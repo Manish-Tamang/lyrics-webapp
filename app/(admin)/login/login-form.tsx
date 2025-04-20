@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,8 @@ export function LoginForm() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get("callbackUrl") || "/admin";
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -23,26 +26,35 @@ export function LoginForm() {
                 email,
                 password,
                 redirect: false,
+
             });
 
             if (result?.error) {
-                toast.error("Invalid credentials");
+
+                console.error("Sign in error:", result.error);
+                toast.error("Invalid credentials or access denied.");
+                setLoading(false);
                 return;
             }
 
-            // Check if the email matches admin email
-            if (email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
-                toast.error("Access denied. Admin only.");
-                return;
+            if (result?.ok && !result?.error) {
+
+                toast.success("Login successful!");
+                router.push(callbackUrl);
+
+
+            } else {
+
+                toast.error("An unknown error occurred. Please try again.");
+                setLoading(false);
             }
 
-            router.push("/admin");
-            router.refresh();
         } catch (error) {
-            toast.error("An error occurred. Please try again.");
-        } finally {
+            console.error("Login exception:", error);
+            toast.error("An error occurred during login. Please try again.");
             setLoading(false);
         }
+
     };
 
     return (
@@ -55,6 +67,8 @@ export function LoginForm() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    autoComplete="email"
+                    disabled={loading}
                 />
             </div>
             <div className="space-y-2">
@@ -65,6 +79,8 @@ export function LoginForm() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    autoComplete="current-password"
+                    disabled={loading}
                 />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
@@ -72,4 +88,4 @@ export function LoginForm() {
             </Button>
         </form>
     );
-} 
+}
