@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Search, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -60,6 +61,15 @@ const discover = [
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
+  const [searchQuery, setSearchQuery] = React.useState("")
+  const router = useRouter()
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -113,10 +123,16 @@ export default function Navbar() {
 
         { }
         <div className="hidden md:flex items-center gap-4">
-          <div className="relative">
+          <form onSubmit={handleSearch} className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input type="search" placeholder="Search..." className="w-[200px] rounded-[4px] pl-8 md:w-[250px]" />
-          </div>
+            <Input
+              type="search"
+              placeholder="Search songs..."
+              className="w-[200px] rounded-[4px] pl-8 md:w-[250px]"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </form>
         </div>
 
         { }
@@ -134,10 +150,16 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div className="md:hidden border-t bg-background px-4 py-4">
           <div className="space-y-4">
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input type="search" placeholder="Search..." className="w-full rounded-[4px] pl-8" />
-            </div>
+              <Input
+                type="search"
+                placeholder="Search songs..."
+                className="w-full rounded-[4px] pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </form>
             <nav className="flex flex-col gap-2">
               <Link href="/" className="px-3 py-2 hover:bg-accent rounded-[4px]" onClick={() => setIsMobileMenuOpen(false)}>
                 Home
