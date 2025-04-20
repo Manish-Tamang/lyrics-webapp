@@ -1,31 +1,14 @@
-
-import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { GoogleSignInButton } from './google-signin-button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
-export const metadata: Metadata = {
-    title: "Admin Login | LyricVerse",
-    description: "Sign in with Google to access the admin dashboard",
-};
-
-export default async function AdminLoginPage() {
+export default async function AdminLoginPage({ searchParams }: { searchParams: { callbackUrl?: string } }) {
     const session = await auth();
 
-
     if (session?.user?.isAdmin) {
-        redirect("/admin");
+        redirect(searchParams.callbackUrl || "/admin");
     }
-
-
-
-    if (session && !session.user?.isAdmin) {
-
-
-        redirect("/");
-    }
-
 
     return (
         <div className="flex min-h-screen items-center justify-center p-4 bg-muted">
