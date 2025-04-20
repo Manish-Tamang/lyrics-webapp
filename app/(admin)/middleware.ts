@@ -1,28 +1,30 @@
-import { NextResponse } from "next/server"
-import getServerSession from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export async function middleware(request: Request) {
-  const session = await getServerSession(authOptions)
-  const isAdmin = session?.user?.email === process.env.ADMIN_EMAIL
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isAdminPath = pathname.startsWith("/admin");
+  const isLoginPath = pathname === "/login";
+  const isAdminErrorPath = pathname.startsWith("/admin/error");
 
-  // Allow access to login page
-  if (request.url.includes("/login")) {
-    return NextResponse.next()
+  const session = request.cookies.get("next-auth.session-token")?.value;
+
+  if (isLoginPath || isAdminErrorPath) {
+    return NextResponse.next();
   }
 
-  // Redirect to login if not authenticated or not admin
-  if (!session || !isAdmin) {
-    return NextResponse.redirect(new URL("/login", request.url))
+  if (isAdminPath) {
+    if (!session) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
   }
 
-  return NextResponse.next()
+  return NextResponse.next();
 }
 
-// Apply middleware to all admin routes except login
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "!/(admin)/login/:path*"
-  ]
-} 
+  matcher: ["/admin/:path*", "/login"],
+};
