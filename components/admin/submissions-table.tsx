@@ -1,252 +1,177 @@
 "use client";
 
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase/config";
-import {
-  collection,
-  doc,
-  updateDoc,
-  addDoc,
-  serverTimestamp,
-  arrayUnion,
-  getDoc,
-} from "firebase/firestore";
-import { Submission, Song, AdminUser } from "@/types";
-import { Button } from "@/components/ui/button";
-import { Check, X, Loader2 } from "lucide-react";
+import React, { useState, useTransition } from "react";
 import { useSession } from "next-auth/react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Submission } from "@/types";
 import { toast } from "sonner";
+import {
+  approveSubmissionAction,
+  rejectSubmissionAction,
+} from "@/app/(admin)/admin/submissions/actions";
+import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
-interface Props {
+interface SubmissionsTableProps {
   submissions: Submission[];
-  loading: boolean;
+  onActionComplete: () => Promise<void>;
+  contributor?: {
+    email: string;
+    name: string;
+    image: string;
+  };
 }
 
-const SubmissionsTable = ({ submissions, loading: initialLoading }: Props) => {
-  const [data, setData] = useState<Submission[]>([]);
-  const [isProcessing, setIsProcessing] = useState<Record<string, boolean>>({});
-  const { data: session, status: sessionStatus } = useSession();
-
-  useEffect(() => {
-    setData(submissions);
-  }, [submissions]);
+export function SubmissionsTable({ submissions, onActionComplete, contributor }: SubmissionsTableProps) {
+  const { data: session } = useSession();
+  const [isPending, startTransition] = useTransition();
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleApprove = async (submissionId: string) => {
-    if (sessionStatus !== 'authenticated' || !session?.user?.isAdmin) {
-      toast.error("Authentication error or insufficient permissions.");
+    if (!contributor?.email) {
+      toast({
+        title: "Error",
+        description: "Contributor information is missing",
+        variant: "destructive",
+      });
       return;
     }
 
-    const adminEmail = session.user.email;
-    if (!adminEmail) {
-      toast.error("Admin email not found in session.");
-      return;
-    }
-
-    setIsProcessing(prev => ({ ...prev, [submissionId]: true }));
-
-    try {
-      const submissionDocRef = doc(db, "submissions", submissionId);
-      const submissionSnap = await getDoc(submissionDocRef);
-
-      if (!submissionSnap.exists()) {
-        toast.error("Submission not found.");
-        throw new Error("Submission not found");
+    setProcessingId(submissionId);
+    startTransition(async () => {
+      const result = await approveSubmissionAction(submissionId);
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Submission approved successfully",
+        });
+        await onActionComplete();
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        });
       }
-
-      const submissionData = submissionSnap.data() as Submission;
-
-      const newSongData: Omit<Song, 'id'> = {
-        title: submissionData.songTitle,
-        artist: submissionData.artistName,
-        album: submissionData.albumName || "",
-        releaseDate: submissionData.releaseDate || "",
-        genre: submissionData.genre,
-        language: submissionData.language || "",
-        lyrics: submissionData.lyrics,
-        imageUrl: submissionData.imageUrl || undefined,
-        contributors: [adminEmail],
-        views: 0,
-        createdAt: serverTimestamp(),
-        originalSubmissionId: submissionId,
-      };
-
-      const songsCollectionRef = collection(db, "songs");
-      const newSongDocRef = await addDoc(songsCollectionRef, newSongData);
-      const newSongId = newSongDocRef.id;
-      toast.success(`Song "${submissionData.songTitle}" added successfully!`);
-
-      const adminUserDocRef = doc(db, "users", adminEmail);
-      await updateDoc(adminUserDocRef, {
-        contributions: arrayUnion(newSongId),
-      });
-      toast.info("Contribution added to your profile.");
-
-      await updateDoc(submissionDocRef, {
-        status: "approved",
-        updatedAt: serverTimestamp(),
-      });
-
-      setData((prevData) =>
-        prevData.map((submission) =>
-          submission.id === submissionId ? { ...submission, status: "approved" } : submission
-        )
-      );
-    } catch (error) {
-      console.error("Error approving submission:", error);
-      toast.error("Failed to approve submission. Please check console.");
-    } finally {
-      setIsProcessing(prev => ({ ...prev, [submissionId]: false }));
-    }
+      setProcessingId(null);
+    });
   };
 
-  const handleReject = async (submissionId: string) => {
-    if (sessionStatus !== 'authenticated' || !session?.user?.isAdmin) {
-      toast.error("Authentication error or insufficient permissions.");
+  const handleReject = (submissionId: string) => {
+    if (!session?.user?.isAdmin) {
+      toast({
+        title: "Error",
+        description: "Not authorized. Please log in again.",
+        variant: "destructive",
+      });
       return;
     }
-    setIsProcessing(prev => ({ ...prev, [submissionId]: true }));
-    try {
-      await updateDoc(doc(db, "submissions", submissionId), {
-        status: "rejected",
-        updatedAt: serverTimestamp(),
-      });
-      setData((prevData) =>
-        prevData.map((submission) =>
-          submission.id === submissionId ? { ...submission, status: "rejected" } : submission
-        )
-      );
-      toast.success("Submission rejected.");
-    } catch (error) {
-      console.error("Error rejecting submission:", error);
-      toast.error("Failed to reject submission.");
-    } finally {
-      setIsProcessing(prev => ({ ...prev, [submissionId]: false }));
-    }
+    setProcessingId(submissionId);
+    startTransition(async () => {
+      const result = await rejectSubmissionAction(submissionId);
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message,
+        });
+        onActionComplete?.();
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+      setProcessingId(null);
+    });
   };
 
-  const columns = [
-    {
-      accessorKey: "songTitle",
-      header: "Song Title",
-    },
-    {
-      accessorKey: "artistName",
-      header: "Artist Name",
-    },
-    {
-      accessorKey: "genre",
-      header: "Genre",
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: (info: any) => {
-        const status = info.getValue() as string;
-        let badgeClass = "bg-gray-200 text-gray-800";
-        if (status === 'approved') badgeClass = "bg-green-200 text-green-800";
-        if (status === 'rejected') badgeClass = "bg-red-200 text-red-800";
-        return <span className={`px-2 py-1 rounded-full text-xs font-medium ${badgeClass}`}>{status}</span>;
-      }
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: (info: any) => {
-        const submission = info.row.original as Submission;
-        const isRowProcessing = isProcessing[submission.id];
-        const isDisabled = submission.status !== "pending" || isRowProcessing || sessionStatus !== 'authenticated';
-
-        return (
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleApprove(submission.id)}
-              disabled={isDisabled}
-              title={submission.status !== 'pending' ? `Already ${submission.status}` : "Approve"}
-            >
-              {isRowProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4 text-green-600" />}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleReject(submission.id)}
-              disabled={isDisabled}
-              title={submission.status !== 'pending' ? `Already ${submission.status}` : "Reject"}
-            >
-              {isRowProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4 text-red-600" />}
-            </Button>
-          </div>
-        );
-      },
-    },
-  ];
-
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
-  if (initialLoading || sessionStatus === 'loading') {
-    return <div className="flex justify-center items-center p-8"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /> <span className="ml-2">Loading submissions...</span></div>;
-  }
-
-  if (sessionStatus === 'unauthenticated') {
-    return <p className="text-center text-red-500 p-4">You must be logged in to view submissions.</p>;
-  }
-
-  if (!session?.user?.isAdmin) {
-    return <p className="text-center text-red-500 p-4">You do not have permission to view this page.</p>;
-  }
+  const getStatusBadgeVariant = (status: Submission["status"]) => {
+    switch (status) {
+      case "approved":
+        return "default";
+      case "rejected":
+        return "destructive";
+      case "pending":
+      default:
+        return "secondary";
+    }
+  };
 
   return (
-    <div className="rounded-md border overflow-hidden">
-      <table className="w-full caption-bottom text-sm">
-        <thead className="[&_tr]:border-b">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th key={header.id} className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Song Title</TableHead>
+          <TableHead>Artist</TableHead>
+          <TableHead>Submitted By</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {submissions.map((submission) => (
+          <TableRow key={submission.id}>
+            <TableCell className="font-medium">{submission.songTitle}</TableCell>
+            <TableCell>{submission.artistName}</TableCell>
+            <TableCell>{submission.submittedBy || "N/A"}</TableCell>
+            <TableCell>
+              <Badge variant={getStatusBadgeVariant(submission.status)}>
+                {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
+              </Badge>
+            </TableCell>
+            <TableCell className="text-right">
+              {submission.status === "pending" && (
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleApprove(submission.id)}
+                    disabled={isPending && processingId === submission.id}
+                    className="border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700"
+                  >
+                    {isPending && processingId === submission.id ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle className="mr-2 h-4 w-4" />
                     )}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody className="[&_tr:last-child]:border-0">
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <tr key={row.id} data-state={row.getIsSelected() && "selected"} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={columns.length} className="h-24 text-center">
-                No pending submissions found.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+                    Approve
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleReject(submission.id)}
+                    disabled={isPending && processingId === submission.id}
+                    className="border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  >
+                    {isPending && processingId === submission.id ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <XCircle className="mr-2 h-4 w-4" />
+                    )}
+                    Reject
+                  </Button>
+                </div>
+              )}
+              {submission.status !== "pending" && (
+                <span className="text-xs text-muted-foreground italic">Processed</span>
+              )}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
-};
+}
 
-export { SubmissionsTable };
+
