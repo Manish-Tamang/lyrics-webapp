@@ -31,6 +31,7 @@ import {
 } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { toast } from "sonner"
+import { Skeleton } from "@/components/ui/skeleton"
 
 // Artist type definition
 interface Artist {
@@ -43,6 +44,26 @@ interface Artist {
   createdAt?: any;
   updatedAt?: any;
 }
+
+const TableSkeleton = () => (
+  <TableRow>
+    <TableCell>
+      <div className="flex items-center space-x-3">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <Skeleton className="h-4 w-[120px]" />
+      </div>
+    </TableCell>
+    <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+    <TableCell className="text-right">
+      <div className="flex justify-end space-x-1">
+        <Skeleton className="h-8 w-8 rounded-md" />
+        <Skeleton className="h-8 w-8 rounded-md" />
+      </div>
+    </TableCell>
+  </TableRow>
+);
 
 export default function ArtistsPage() {
   const [artists, setArtists] = useState<Artist[]>([])
@@ -340,11 +361,13 @@ export default function ArtistsPage() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  Loading artists...
-                </TableCell>
-              </TableRow>
+              <>
+                <TableSkeleton />
+                <TableSkeleton />
+                <TableSkeleton />
+                <TableSkeleton />
+                <TableSkeleton />
+              </>
             ) : filteredArtists.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
