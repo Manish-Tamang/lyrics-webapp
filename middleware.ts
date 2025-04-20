@@ -1,13 +1,30 @@
-// middleware.ts
 import { NextResponse } from "next/server";
-import NextAuth from "next-auth";
-import { authOptions } from "@/lib/auth";
+import type { NextRequest } from "next/server";
 
-const { auth } = NextAuth(authOptions);
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isAdminPath = pathname.startsWith("/admin");
+  const isLoginPath = pathname === "/login";
+  const isAdminErrorPath = pathname.startsWith("/admin/error");
 
-export default auth;
+  const session = request.cookies.get("next-auth.session-token")?.value;
 
-// Apply middleware to ALL routes starting with /admin/
+  if (isLoginPath || isAdminErrorPath) {
+    return NextResponse.next();
+  }
+
+  if (isAdminPath) {
+    if (!session) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
+  }
+
+  return NextResponse.next();
+}
+
 export const config = {
-    matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/login"],
 };
