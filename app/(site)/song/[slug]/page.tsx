@@ -1,4 +1,5 @@
 
+
 import type { Metadata } from "next";
 import { db } from "@/lib/firebase/config";
 import { doc, getDoc } from "firebase/firestore";
@@ -7,7 +8,7 @@ import SongClient from "./SongClient";
 
 interface SongPageProps {
   params: {
-    slug: string; 
+    slug: string;
   };
 }
 
@@ -43,7 +44,7 @@ export default async function SongPage({ params }: SongPageProps) {
     const songDoc = await getDoc(doc(db, "songs", songId));
     if (songDoc.exists()) {
       const song = { id: songDoc.id, ...songDoc.data() } as Song;
-      return <SongClient song={song} />; 
+      return <SongClient song={song} />;
     } else {
       return (
         <div className="flex flex-col items-center justify-center py-12 text-center">
