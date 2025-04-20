@@ -29,10 +29,12 @@ import {
   deleteDoc,
   query,
   orderBy,
-  serverTimestamp
+  serverTimestamp,
+  arrayUnion
 } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { toast } from "sonner"
+import { useSession } from "next-auth/react"
 
 // Song type definition
 interface Song {
@@ -94,6 +96,7 @@ const TableSkeleton = () => (
 
 
 export default function SongsPage() {
+  const { data: session } = useSession();
   const [songs, setSongs] = useState<Song[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -189,6 +192,11 @@ export default function SongsPage() {
     try {
       setLoading(true)
 
+      if (!session?.user?.email) {
+        toast.error("User session not found")
+        return
+      }
+
       // Validate required fields
       if (!newSong.title || !newSong.artist) {
         toast.error("Title and artist are required")
@@ -205,7 +213,12 @@ export default function SongsPage() {
         lyrics: newSong.lyrics,
         views: 0,
         createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
+        // Add contributor information
+        contributedByEmail: session.user.email,
+        contributedByName: session.user.name || "Admin",
+        contributedByImage: session.user.image || "",
+        contributors: [session.user.email]
       }
 
       const docRef = await addDoc(collection(db, "songs"), songData)
@@ -220,6 +233,15 @@ export default function SongsPage() {
           console.error("Error uploading image:", error)
         }
       }
+
+      // Update admin user's contributions
+      const adminUserRef = doc(db, "users", session.user.email)
+      await updateDoc(adminUserRef, {
+        contributions: arrayUnion(docRef.id),
+        lastContribution: serverTimestamp(),
+        name: session.user.name,
+        image: session.user.image
+      })
 
       // Add the new song to the state with the generated ID
       const newSongWithId = {
@@ -263,7 +285,7 @@ export default function SongsPage() {
   }
 
   const handleEditSong = async () => {
-    if (!selectedSong) return
+    if (!selectedSong || !session?.user?.email) return
 
     try {
       setLoading(true)
@@ -294,10 +316,24 @@ export default function SongsPage() {
         language: selectedSong.language,
         releaseDate: selectedSong.releaseDate,
         imageUrl,
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
+        // Update contributor information
+        contributedByEmail: session.user.email,
+        contributedByName: session.user.name || "Admin",
+        contributedByImage: session.user.image || "",
+        contributors: arrayUnion(session.user.email)
       }
 
       await updateDoc(songRef, songData)
+
+      // Update admin user's contributions if not already included
+      const adminUserRef = doc(db, "users", session.user.email)
+      await updateDoc(adminUserRef, {
+        contributions: arrayUnion(selectedSong.id),
+        lastContribution: serverTimestamp(),
+        name: session.user.name,
+        image: session.user.image
+      })
 
       // Update the songs state
       setSongs(
@@ -312,6 +348,9 @@ export default function SongsPage() {
               language: selectedSong.language,
               releaseDate: selectedSong.releaseDate,
               imageUrl,
+              contributedByEmail: session.user.email,
+              contributedByName: session.user.name || "Admin",
+              contributedByImage: session.user.image || "",
             }
             : song,
         ),
