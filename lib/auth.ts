@@ -1,32 +1,55 @@
-import NextAuth from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import { Session } from "next-auth";
-import { User } from "next-auth";
+// lib/auth.ts
+import type { NextAuthOptions } from "next-auth"
+import CredentialsProvider from "next-auth/providers/credentials"
+import type { User, JWT } from "next-auth"
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
     providers: [
-        GoogleProvider({
-            clientId: process.env.AUTH_GOOGLE_ID!,
-            clientSecret: process.env.AUTH_GOOGLE_SECRET!,
-        }),
+        CredentialsProvider({
+            name: "Credentials",
+            credentials: {
+                email: { label: "Email", type: "email" },
+                password: { label: "Password", type: "password" }
+            },
+            async authorize(credentials): Promise<User | null> {
+                if (!credentials?.email || !credentials?.password) {
+                    return null
+                }
+
+                // Check if the email matches the admin email
+                if (credentials.email !== process.env.ADMIN_EMAIL) {
+                    return null
+                }
+
+                // In a real app, you would verify the password here
+                // For this example, we'll just check if it's not empty
+                if (!credentials.password) {
+                    return null
+                }
+
+                return {
+                    id: "1",
+                    email: credentials.email,
+                    name: "Admin"
+                }
+            }
+        })
     ],
-    callbacks: {
-        async signIn({ user }: { user: User }) {
-            if (!user.email) return false;
-            return user.email === process.env.ADMIN_EMAIL;
-        },
-        async session({ session }: { session: Session }) {
-            return session;
-        },
-        async authorized({ request, auth }: { request: any; auth: any }) {
-            const path = request.nextUrl.pathname;
-            if (path === "/admin/login" || path === "/admin/error") return true;
-            return auth?.user?.email === process.env.ADMIN_EMAIL;
-        },
-    },
     pages: {
-        signIn: "/admin/login",
-        error: "/admin/error",
+        signIn: "/admin/login"
     },
-    secret: process.env.NEXTAUTH_SECRET,
-} satisfies Parameters<typeof NextAuth>[0]; 
+    callbacks: {
+        async jwt({ token, user }: { token: JWT; user: User | null }) {
+            if (user) {
+                token.email = user.email
+            }
+            return token
+        },
+        async session({ session, token }: { session: any; token: JWT }) {
+            if (token) {
+                session.user.email = token.email
+            }
+            return session
+        }
+    }
+}

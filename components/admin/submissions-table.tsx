@@ -12,31 +12,17 @@ import { Submission } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 
-interface Props { }
+interface Props {
+  submissions: Submission[]
+  loading: boolean
+}
 
-const SubmissionsTable = (props: Props) => {
+const SubmissionsTable = ({ submissions, loading }: Props) => {
   const [data, setData] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchSubmissions();
-  }, []);
-
-  const fetchSubmissions = async () => {
-    setLoading(true);
-    try {
-      const querySnapshot = await getDocs(collection(db, "submissions"));
-      const submissionsData: Submission[] = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Submission[];
-      setData(submissionsData);
-    } catch (error) {
-      console.error("Error fetching submissions:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setData(submissions);
+  }, [submissions]);
 
   const handleApprove = async (id: string) => {
     try {

@@ -30,7 +30,7 @@ export default function AboutPage() {
           creating a space where artists and fans can connect through the power of lyrics.
         </p>
       </div>
-
+<Image src={"/oil-paint.jpg"} className="rounded-[4px]" alt="about" width={800} height={500} />
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="rounded-[4px] border">
           <CardContent className="p-6">
