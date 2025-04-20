@@ -1,6 +1,56 @@
-import type { NextAuthOptions, User, Account, Profile } from "next-auth";
-import type { JWT } from "next-auth/jwt";
+import type { NextAuthOptions, DefaultSession } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import { db } from "@/lib/firebase/config";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { AdminUser } from "@/types";
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      isAdmin?: boolean;
+    } & DefaultSession["user"]
+  }
+}
+
+async function ensureAdminUserExists(
+  email: string,
+  name?: string | null,
+  image?: string | null
+) {
+  if (email !== process.env.ADMIN_EMAIL) {
+    return;
+  }
+
+  const userDocRef = doc(db, "users", email);
+
+  try {
+    const userDocSnap = await getDoc(userDocRef);
+
+    if (!userDocSnap.exists()) {
+      const newUser: Omit<AdminUser, "id"> = {
+        email: email,
+        name: name ?? undefined,
+        image: image ?? undefined,
+        isAdmin: true,
+        contributions: [],
+        lastLogin: serverTimestamp(),
+      };
+      await setDoc(userDocRef, newUser);
+    } else {
+      await setDoc(
+        userDocRef,
+        {
+          lastLogin: serverTimestamp(),
+          name: name ?? userDocSnap.data()?.name ?? undefined,
+          image: image ?? userDocSnap.data()?.image ?? undefined,
+        },
+        { merge: true }
+      );
+    }
+  } catch (error) {
+    console.error("Error ensuring admin user exists in Firestore:", error);
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -24,38 +74,30 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async signIn({
-      user,
-      account,
-      profile,
-    }: {
-      user: User;
-      account: Account | null;
-      profile?: Profile;
-    }): Promise<boolean | string> {
+    async signIn({ user, account, profile }) {
       if (account?.provider === "google") {
         const userEmail = profile?.email || user?.email;
+
+        if (!userEmail) {
+          return "/admin/error?error=EmailNotFound";
+        }
+
         if (userEmail === process.env.ADMIN_EMAIL) {
-          console.log(`Admin login successful for: ${userEmail}`);
+          await ensureAdminUserExists(
+            userEmail,
+            profile?.name,
+            profile?.image
+          );
           return true;
         } else {
-          console.warn(
-            `Non-admin Google login attempt denied for: ${userEmail}`
-          );
           return "/admin/error?error=AccessDenied";
         }
       }
-      console.warn(`Sign-in attempt denied for provider: ${account?.provider}`);
+
       return "/admin/error?error=InvalidProvider";
     },
 
-    async jwt({
-      token,
-      user,
-    }: {
-      token: JWT;
-      user?: User | null;
-    }): Promise<JWT> {
+    async jwt({ token, user }) {
       if (user) {
         token.email = user.email;
         token.isAdmin = user.email === process.env.ADMIN_EMAIL;
@@ -63,14 +105,8 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    async session({
-      session,
-      token,
-    }: {
-      session: any;
-      token: JWT;
-    }): Promise<any> {
-      if (token) {
+    async session({ session, token }) {
+      if (token && session.user) {
         session.user.email = token.email as string;
         session.user.isAdmin = token.isAdmin as boolean;
       }
