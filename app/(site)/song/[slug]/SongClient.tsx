@@ -8,11 +8,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, Clock, Calendar, Disc } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LyricsDisplay from "@/components/lyrics-display";
 import RecentSongs from "@/components/recent-songs";
 import { Song } from "@/types";
 import { db } from "@/lib/firebase/config";
-import { collection, getDocs, query, orderBy, limit, where } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, limit, where, doc, getDoc } from "firebase/firestore";
+import { format } from "date-fns";
 
 interface SongClientProps {
     song: Song;
@@ -26,15 +28,54 @@ interface RecentSong {
     coverImage: string;
 }
 
+interface Contributor {
+    email: string;
+    name: string;
+    image: string;
+}
+
 const SongClient: React.FC<SongClientProps> = ({ song }) => {
     const [recentSongs, setRecentSongs] = useState<RecentSong[]>([]);
     const [loading, setLoading] = useState(true);
+    const [contributors, setContributors] = useState<Contributor[]>([]);
+    const [formattedDate, setFormattedDate] = useState<string>("");
 
     useEffect(() => {
+        // Format the date when component mounts
+        if (song.createdAt) {
+            const date = new Date(song.createdAt.seconds * 1000);
+            setFormattedDate(format(date, "MMM d, yyyy"));
+        }
+
+        // Fetch contributor details
+        const fetchContributors = async () => {
+            if (song.contributors && song.contributors.length > 0) {
+                const contributorPromises = song.contributors.map(async (email) => {
+                    const userDoc = await getDoc(doc(db, "users", email));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        return {
+                            email,
+                            name: userData.name || email.split('@')[0],
+                            image: userData.image || "",
+                        };
+                    }
+                    return {
+                        email,
+                        name: email.split('@')[0],
+                        image: "",
+                    };
+                });
+                const contributorData = await Promise.all(contributorPromises);
+                setContributors(contributorData);
+            }
+        };
+
+        fetchContributors();
+
         const fetchRecentSongs = async () => {
             try {
                 setLoading(true);
-                // Fetch 5 recent songs, excluding the current song
                 const songsQuery = query(
                     collection(db, "songs"),
                     where("id", "!=", song.id),
@@ -65,7 +106,7 @@ const SongClient: React.FC<SongClientProps> = ({ song }) => {
         };
 
         fetchRecentSongs();
-    }, [song.id]);
+    }, [song.id, song.createdAt, song.contributors]);
 
     return (
         <div className="space-y-8">
@@ -115,6 +156,27 @@ const SongClient: React.FC<SongClientProps> = ({ song }) => {
                 </div>
             </div>
             <LyricsDisplay lyrics={song.lyrics} />
+            
+            {/* Contributors Section */}
+            {contributors.length > 0 && (
+                <div className="mt-8">
+                    <h3 className="mb-4 text-lg font-semibold">Contributors</h3>
+                    <div className="flex flex-wrap gap-4">
+                        {contributors.map((contributor) => (
+                            <div key={contributor.email} className="flex items-center gap-2">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={contributor.image} alt={contributor.name} />
+                                    <AvatarFallback>{contributor.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="text-sm font-medium">{contributor.name}</p>
+                                    <p className="text-xs text-muted-foreground">{contributor.email}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
             
             {!loading && recentSongs.length > 0 && (
                 <div className="mt-8">
