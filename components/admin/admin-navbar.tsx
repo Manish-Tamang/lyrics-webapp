@@ -45,6 +45,11 @@ export default function AdminNavbar() {
       active: pathname === "/admin/songs",
     },
     {
+      href: "/admin/profile",
+      label: "Profile",
+      active: pathname === "/admin/profile",
+    },
+    {
       href: "/admin/settings",
       label: "Settings",
       active: pathname === "/admin/settings",
@@ -122,9 +127,11 @@ export default function AdminNavbar() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Users className="mr-2 h-4 w-4" />
-                <span>Profile</span>
+              <DropdownMenuItem asChild>
+                <Link href="/admin/profile">
+                  <Users className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <FileText className="mr-2 h-4 w-4" />
