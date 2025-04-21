@@ -195,7 +195,6 @@ export default function SongClient({ slug }: SongClientProps) {
                     </div>
                 </div>
             )}
-
             {formattedDate && (
                 <p className="text-sm text-muted-foreground">
                     Added on {formattedDate}
