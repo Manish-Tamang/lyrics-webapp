@@ -66,8 +66,15 @@ export default function Navbar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+    const trimmedQuery = searchQuery.trim()
+    if (trimmedQuery) {
+      // Store the search query in localStorage for suggestions
+      const searchHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]')
+      if (!searchHistory.includes(trimmedQuery)) {
+        searchHistory.unshift(trimmedQuery)
+        localStorage.setItem('searchHistory', JSON.stringify(searchHistory.slice(0, 5)))
+      }
+      router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`)
     }
   }
 
