@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Music, Users, FileText, Settings, LogOut, Menu } from "lucide-react"
@@ -17,11 +17,42 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useSession, signOut } from "next-auth/react"
 import Image from "next/image"
+import { db } from "@/lib/firebase/config"
+import { doc, getDoc } from "firebase/firestore"
+
+interface AdminUser {
+  name: string;
+  email: string;
+  image?: string;
+  role: string;
+}
 
 export default function AdminNavbar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const { data: session } = useSession()
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchAdminDetails = async () => {
+      if (!session?.user?.email) return;
+
+      try {
+        const userDoc = await getDoc(doc(db, "users", session.user.email));
+        if (userDoc.exists()) {
+          const userData = userDoc.data() as AdminUser;
+          setAdminUser(userData);
+        }
+      } catch (error) {
+        console.error("Error fetching admin details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAdminDetails();
+  }, [session]);
 
   const routes = [
     {
@@ -114,16 +145,29 @@ export default function AdminNavbar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <Image src={session?.user?.image || "/placeholder.svg"} fill alt={session?.user?.name || "Admin"} />
-                  <AvatarFallback>{session?.user?.name?.charAt(0) || "A"}</AvatarFallback>
+                  {adminUser?.image ? (
+                    <img
+                      src={adminUser.image} 
+                      alt={adminUser.name || "Admin"} 
+                      className="object-cover"
+                    />
+                  ) : (
+                    <AvatarFallback>
+                      {adminUser?.name?.charAt(0) || session?.user?.name?.charAt(0) || "A"}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{session?.user?.name || "Admin User"}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{session?.user?.email || "admin@lyricverse.com"}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {adminUser?.name || session?.user?.name || "Admin User"}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {adminUser?.email || session?.user?.email || "admin@lyricverse.com"}
+                  </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
