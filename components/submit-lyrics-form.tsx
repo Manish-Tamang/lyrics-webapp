@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Music, Upload, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { db, storage } from "@/lib/firebase/config";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, getDocs, query, orderBy } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { toast } from "sonner";
 
@@ -18,7 +18,30 @@ export default function SubmitLyricsForm() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [artists, setArtists] = useState<{ id: string; name: string }[]>([]);
+  const [isLoadingArtists, setIsLoadingArtists] = useState(true);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    const fetchArtists = async () => {
+      try {
+        const artistsQuery = query(collection(db, "artists"), orderBy("name"));
+        const querySnapshot = await getDocs(artistsQuery);
+        const artistsList = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          name: doc.data().name
+        }));
+        setArtists(artistsList);
+      } catch (error) {
+        console.error("Error fetching artists:", error);
+        toast.error("Failed to load artists list");
+      } finally {
+        setIsLoadingArtists(false);
+      }
+    };
+
+    fetchArtists();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +51,7 @@ export default function SubmitLyricsForm() {
 
     const form = e.target as HTMLFormElement;
     const songTitle = (form.elements.namedItem("song-title") as HTMLInputElement).value;
-    const artistName = (form.elements.namedItem("artist-name") as HTMLInputElement).value;
+    const artistId = (form.elements.namedItem("artist-id") as HTMLSelectElement).value;
     const albumName = (form.elements.namedItem("album-name") as HTMLInputElement).value;
     const releaseDate = (form.elements.namedItem("release-date") as HTMLInputElement).value;
     const genre = (form.elements.namedItem("genre") as HTMLSelectElement).value;
@@ -49,7 +72,7 @@ export default function SubmitLyricsForm() {
       // Upload image if provided
       if (coverImageFile) {
         setUploadProgress(0);
-        const storageRef = ref(storage, `covers/${Date.now()}-${artistName}-${songTitle}-${coverImageFile.name}`);
+        const storageRef = ref(storage, `covers/${Date.now()}-${artistId}-${songTitle}-${coverImageFile.name}`);
         await uploadBytes(storageRef, coverImageFile);
         setUploadProgress(50);
         imageUrl = await getDownloadURL(storageRef);
@@ -59,7 +82,7 @@ export default function SubmitLyricsForm() {
       // Add document to Firestore
       const docRef = await addDoc(collection(db, "lyricsSubmissions"), {
         songTitle,
-        artistName,
+        artistId,
         albumName,
         releaseDate,
         genre,
@@ -124,8 +147,25 @@ export default function SubmitLyricsForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="artist-name">Artist Name *</Label>
-              <Input id="artist-name" name="artist-name" placeholder="Enter artist name" required className="rounded-[4px]" />
+              <Label htmlFor="artist-id">Artist Name *</Label>
+              <Select required name="artist-id">
+                <SelectTrigger id="artist-id" className="rounded-[4px]">
+                  <SelectValue placeholder={isLoadingArtists ? "Loading artists..." : "Select artist"} />
+                </SelectTrigger>
+                <SelectContent className="rounded-[4px]">
+                  {isLoadingArtists ? (
+                    <SelectItem value="loading" disabled>
+                      Loading artists...
+                    </SelectItem>
+                  ) : (
+                    artists.map((artist) => (
+                      <SelectItem key={artist.id} value={artist.id}>
+                        {artist.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
