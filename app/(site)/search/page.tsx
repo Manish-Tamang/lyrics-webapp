@@ -66,10 +66,14 @@ export default function SearchPage() {
 
         const songsRef = collection(db, "songs");
         const songsSnapshot = await getDocs(songsRef);
-        const allSongs = songsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Song[];
+        const allSongs = songsSnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            slug: data.slug || doc.id,
+            ...data,
+          } as Song;
+        });
 
         const filteredResults = allSongs.filter(
           (song) =>
@@ -85,10 +89,14 @@ export default function SearchPage() {
         if (filteredResults.length === 0) {
           const suggestionsQuery = query(songsRef, limit(5));
           const suggestionsSnapshot = await getDocs(suggestionsQuery);
-          const suggestedSongs = suggestionsSnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Song[];
+          const suggestedSongs = suggestionsSnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              slug: data.slug || doc.id,
+              ...data,
+            } as Song;
+          });
           setSuggestions(suggestedSongs);
         } else {
           setSuggestions([]);
