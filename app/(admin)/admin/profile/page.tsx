@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Song } from "@/types";
+import { Timestamp } from "firebase/firestore";
 
 export default function AdminProfilePage() {
     const { data: session } = useSession();
@@ -109,7 +110,12 @@ export default function AdminProfilePage() {
                                         </div>
                                         <div className="text-right">
                                             <p className="text-sm text-muted-foreground">
-                                                {format(song.createdAt.toDate(), "MMM d, yyyy")}
+                                                {song.createdAt ? format(
+                                                    song.createdAt instanceof Timestamp 
+                                                        ? song.createdAt.toDate() 
+                                                        : new Date(song.createdAt), 
+                                                    "MMM d, yyyy"
+                                                ) : "N/A"}
                                             </p>
                                             <Badge variant="outline" className="mt-1">
                                                 {song.genre}
