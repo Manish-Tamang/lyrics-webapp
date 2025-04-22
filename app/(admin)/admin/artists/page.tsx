@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { PlusCircle, Search, Edit, Trash2 } from "lucide-react"
+import { PlusCircle, Search, Edit, Trash2, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -32,6 +32,23 @@ import {
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { toast } from "sonner"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 // Artist type definition
 interface Artist {
@@ -65,6 +82,8 @@ const TableSkeleton = () => (
   </TableRow>
 );
 
+const ITEMS_PER_PAGE = 5;
+
 export default function ArtistsPage() {
   const [artists, setArtists] = useState<Artist[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -81,6 +100,8 @@ export default function ArtistsPage() {
   const [uploadingImage, setUploadingImage] = useState(false)
   const addImageRef = useRef<HTMLInputElement>(null)
   const editImageRef = useRef<HTMLInputElement>(null)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Fetch artists from Firebase
   useEffect(() => {
@@ -109,6 +130,28 @@ export default function ArtistsPage() {
   }, [])
 
   const filteredArtists = artists.filter((artist) => artist.name.toLowerCase().includes(searchTerm.toLowerCase()))
+
+  // Calculate pagination
+  useEffect(() => {
+    const totalItems = filteredArtists.length;
+    const pages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    setTotalPages(pages);
+    // Reset to first page if current page is out of bounds
+    if (currentPage > pages && pages > 0) {
+      setCurrentPage(1);
+    }
+  }, [filteredArtists, currentPage]);
+
+  // Get paginated artists
+  const paginatedArtists = filteredArtists.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const uploadImage = async (file: File, artistId: string): Promise<string> => {
     try {
@@ -281,6 +324,21 @@ export default function ArtistsPage() {
 
   return (
     <div className="space-y-4">
+      {/* Breadcrumb */}
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin">
+              <Home className="h-4 w-4" />
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Artists</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <h1 className="text-2xl font-bold tracking-tight">Artists Management</h1>
         <div className="flex items-center space-x-2">
@@ -368,14 +426,14 @@ export default function ArtistsPage() {
                 <TableSkeleton />
                 <TableSkeleton />
               </>
-            ) : filteredArtists.length === 0 ? (
+            ) : paginatedArtists.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
                   No artists found.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredArtists.map((artist) => (
+              paginatedArtists.map((artist) => (
                 <TableRow key={artist.id}>
                   <TableCell>
                     <div className="flex items-center space-x-3">
@@ -417,6 +475,40 @@ export default function ArtistsPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    onClick={() => handlePageChange(page)}
+                    isActive={currentPage === page}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
 
       {/* Edit Dialog */}
       {selectedArtist && (
