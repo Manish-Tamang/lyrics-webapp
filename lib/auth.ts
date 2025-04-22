@@ -117,45 +117,28 @@ async function ensureAdminUserExists(
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
           prompt: "consent",
           access_type: "offline",
-          response_type: "code",
-        },
-      },
+          response_type: "code"
+        }
+      }
     }),
   ],
   pages: {
     signIn: "/login",
-    error: "/admin/error",
+    error: "/login",
   },
   session: {
     strategy: "jwt",
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
-      if (account?.provider === "google") {
-        const userEmail = profile?.email || user?.email;
-
-        if (!userEmail) {
-          return "/admin/error?error=EmailNotFound";
-        }
-
-        if (userEmail === process.env.ADMIN_EMAIL) {
-          await ensureAdminUserExists(
-            userEmail,
-            profile?.name,
-            (profile as any)?.picture ?? user?.image
-          );
-          return true;
-        } else {
-          return "/admin/error?error=AccessDenied";
-        }
-      }
-      return "/admin/error?error=InvalidProvider";
+    async signIn({ user }) {
+      // Allow all users to sign in
+      return true;
     },
 
     async jwt({ token, user, profile }) {
@@ -173,12 +156,10 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    async session({ session, token }) {
-      if (token && session.user) {
-        session.user.email = token.email as string;
-        session.user.isAdmin = token.isAdmin as boolean;
-        session.user.name = token.name as string | null | undefined;
-        session.user.image = token.picture as string | null | undefined;
+    async session({ session }) {
+      if (session?.user?.email) {
+        const adminEmails = process.env.ADMIN_EMAILS?.split(",") || [];
+        session.user.isAdmin = adminEmails.includes(session.user.email);
       }
       return session;
     },
