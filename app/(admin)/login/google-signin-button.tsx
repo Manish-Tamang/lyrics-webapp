@@ -2,17 +2,35 @@
 
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface GoogleSignInButtonProps {
   callbackUrl?: string;
 }
 
 export function GoogleSignInButton({ callbackUrl }: GoogleSignInButtonProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      await signIn("google", { 
+        callbackUrl: callbackUrl || "/admin",
+        redirect: true 
+      });
+    } catch (error) {
+      console.error("Error signing in:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Button
       variant="outline"
       className="w-full"
-      onClick={() => signIn("google", { callbackUrl })}
+      onClick={handleSignIn}
+      disabled={isLoading}
     >
       <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
         <path
@@ -32,7 +50,7 @@ export function GoogleSignInButton({ callbackUrl }: GoogleSignInButtonProps) {
           fill="#EA4335"
         />
       </svg>
-      Sign in with Google
+      {isLoading ? "Signing in..." : "Sign in with Google"}
     </Button>
   );
 }
