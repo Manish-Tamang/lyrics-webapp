@@ -30,7 +30,7 @@ export default function AboutPage() {
           creating a space where artists and fans can connect through the power of lyrics.
         </p>
       </div>
-<Image src={"/oil-paint.jpg"} className="rounded-[4px]" alt="about" width={800} height={500} />
+      <Image src={"/oil-paint.jpg"} className="rounded-[4px]" alt="about" width={800} height={500} />
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="rounded-[4px] border">
           <CardContent className="p-6">
@@ -73,20 +73,17 @@ export default function AboutPage() {
           {[
             {
               name: "Manish Tamang",
-              role: "Founder & CEO",
-              bio: "Music enthusiast with a background in web development and a passion for lyrics.",
+              role: "Developer",
               image: "https://www.manishtamang.com/profile.png",
             },
             {
               name: "Imohang Chamling Rai",
               role: "Moderator",
-              bio: "Full-stack developer with experience in building community-driven platforms.",
               image: "/imo.jpg",
             },
             {
               name: "Abish Karki",
               role: "Admin",
-              bio: "Former music journalist with a keen eye for lyrical detail and artist relations.",
               image: "/abish.webp",
             },
           ].map((member) => (
@@ -96,7 +93,6 @@ export default function AboutPage() {
               </div>
               <h3 className="mt-4 text-lg font-karla">{member.name}</h3>
               <p className="text-sm text-primary-foreground">{member.role}</p>
-              <p className="mt-2 text-sm text-muted-foreground">{member.bio}</p>
             </div>
           ))}
         </div>
