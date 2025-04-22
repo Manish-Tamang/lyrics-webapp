@@ -80,11 +80,6 @@ export default function AdminNavbar() {
       label: "Profile",
       active: pathname === "/admin/profile",
     },
-    {
-      href: "/admin/settings",
-      label: "Settings",
-      active: pathname === "/admin/settings",
-    },
   ]
 
   return (
@@ -180,10 +175,6 @@ export default function AdminNavbar() {
               <DropdownMenuItem>
                 <FileText className="mr-2 h-4 w-4" />
                 <span>Activity Log</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => signOut()}>
