@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { PlusCircle, Search, Edit, Trash2, Eye, Image as ImageIcon } from "lucide-react"
+import { PlusCircle, Search, Edit, Trash2, Eye, Image as ImageIcon, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -19,6 +19,23 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { db, storage } from "@/lib/firebase/config"
 import {
   collection,
@@ -74,6 +91,8 @@ const languageOptions = [
   "Portuguese", "Japanese", "Korean", "Chinese", "Instrumental"
 ];
 
+const ITEMS_PER_PAGE = 5;
+
 const TableSkeleton = () => (
   <TableRow>
     <TableCell><Skeleton className="h-10 w-10 rounded-md" /></TableCell>
@@ -120,6 +139,8 @@ export default function SongsPage() {
   const [albums, setAlbums] = useState<string[]>([])
   const addImageRef = useRef<HTMLInputElement>(null)
   const editImageRef = useRef<HTMLInputElement>(null)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Fetch songs from Firebase
   useEffect(() => {
@@ -171,6 +192,28 @@ export default function SongsPage() {
       song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       song.artist.toLowerCase().includes(searchTerm.toLowerCase()),
   )
+
+  // Calculate pagination
+  useEffect(() => {
+    const totalItems = filteredSongs.length;
+    const pages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    setTotalPages(pages);
+    // Reset to first page if current page is out of bounds
+    if (currentPage > pages && pages > 0) {
+      setCurrentPage(1);
+    }
+  }, [filteredSongs, currentPage]);
+
+  // Get paginated songs
+  const paginatedSongs = filteredSongs.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const uploadImage = async (file: File, songId: string): Promise<string> => {
     try {
@@ -409,6 +452,21 @@ export default function SongsPage() {
 
   return (
     <div className="space-y-4">
+      {/* Breadcrumb */}
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin">
+              <Home className="h-4 w-4" />
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Songs</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <h1 className="text-2xl font-bold tracking-tight">Songs Management</h1>
         <div className="flex items-center space-x-2">
@@ -597,14 +655,14 @@ export default function SongsPage() {
                 <TableSkeleton />
                 <TableSkeleton />
               </>
-            ) : filteredSongs.length === 0 ? (
+            ) : paginatedSongs.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="h-24 text-center">
                   No songs found.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredSongs.map((song) => (
+              paginatedSongs.map((song) => (
                 <TableRow key={song.id}>
                   <TableCell>
                     {song.imageUrl ? (
@@ -660,6 +718,40 @@ export default function SongsPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    onClick={() => handlePageChange(page)}
+                    isActive={currentPage === page}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
 
       {/* Preview Dialog */}
       {selectedSong && (
