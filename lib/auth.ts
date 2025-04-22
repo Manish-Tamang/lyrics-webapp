@@ -78,7 +78,11 @@ async function ensureAdminUserExists(
   name?: string | null,
   googleImageUrl?: string | null
 ) {
-  if (email !== process.env.ADMIN_EMAIL) {
+  // Get admin emails from environment variable and split into array
+  const adminEmails = process.env.ADMIN_EMAILS?.split(",").map(email => email.trim()) || [];
+  
+  // Check if the email is in the admin list
+  if (!adminEmails.includes(email)) {
     return;
   }
 
@@ -144,7 +148,9 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, profile }) {
       if (user) {
         token.email = user.email;
-        token.isAdmin = user.email === process.env.ADMIN_EMAIL;
+        // Get admin emails from environment variable and split into array
+        const adminEmails = process.env.ADMIN_EMAILS?.split(",").map(email => email.trim()) || [];
+        token.isAdmin = adminEmails.includes(user.email || "");
         if (profile) {
           token.name = profile.name;
           token.picture = (profile as any).picture ?? user.image;
@@ -158,7 +164,9 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session }) {
       if (session?.user?.email) {
-        const adminEmails = process.env.ADMIN_EMAILS?.split(",") || [];
+        // Get admin emails from environment variable and split into array
+        const adminEmails = process.env.ADMIN_EMAILS?.split(",").map(email => email.trim()) || [];
+        // Check if user's email is in the admin list
         session.user.isAdmin = adminEmails.includes(session.user.email);
       }
       return session;
