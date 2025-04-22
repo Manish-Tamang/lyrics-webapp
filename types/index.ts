@@ -2,24 +2,25 @@ import { Timestamp } from "firebase/firestore";
 
 export interface Song {
   id: string;
+  slug: string;
   title: string;
   artist: string;
+  artistId: string;
   album?: string;
-  releaseDate?: string;
   genre: string;
-  language?: string;
   lyrics: string;
-  views?: number;
   imageUrl?: string;
   duration?: string;
+  releaseDate?: string;
+  createdAt?: Date;
   contributors?: string[];
+  language?: string;
+  views?: number;
   contributedByEmail: string;
   contributedByName: string;
   contributedByImage?: string;
-  createdAt: Timestamp;
   updatedAt?: Timestamp;
   originalSubmissionId?: string;
-  slug: string;
 }
 
 export interface Artist {
