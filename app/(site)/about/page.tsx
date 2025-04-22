@@ -79,7 +79,7 @@ export default function AboutPage() {
             {
               name: "Imohang Chamling Rai",
               role: "Moderator",
-              image: "/imo.jpg",
+              image: "/Imo.jpg",
             },
             {
               name: "Abish Karki",
