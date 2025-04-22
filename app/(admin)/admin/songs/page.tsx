@@ -79,13 +79,12 @@ interface Artist {
   imageUrl: string;
 }
 
-// Genre options
+
 const genreOptions = [
   "Pop", "Love", "Rock", "Hip Hop", "Electronic", "Indie", "Folk",
   "R&B", "Jazz", "Classical", "Country", "World", "Ambient"
 ];
 
-// Language options
 const languageOptions = [
   "English", "Nepali", "Spanish", "French", "German", "Italian",
   "Portuguese", "Japanese", "Korean", "Chinese", "Instrumental"
@@ -486,14 +485,14 @@ export default function SongsPage() {
                 Add Song
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Song</DialogTitle>
                 <DialogDescription>Enter the details for the new song.</DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
+              <div className="grid gap-3 py-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-1.5">
                     <Label htmlFor="title">Song Title</Label>
                     <Input
                       id="title"
@@ -502,7 +501,7 @@ export default function SongsPage() {
                       placeholder="Enter song title"
                     />
                   </div>
-                  <div className="grid gap-2">
+                  <div className="grid gap-1.5">
                     <Label htmlFor="artist">Artist</Label>
                     <Select value={newSong.artist} onValueChange={(value) => setNewSong({ ...newSong, artist: value })}>
                       <SelectTrigger id="artist">
@@ -518,8 +517,8 @@ export default function SongsPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-1.5">
                     <Label htmlFor="album">Album</Label>
                     <Select value={newSong.album} onValueChange={(value) => setNewSong({ ...newSong, album: value })}>
                       <SelectTrigger id="album">
@@ -535,7 +534,7 @@ export default function SongsPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="grid gap-2">
+                  <div className="grid gap-1.5">
                     <Label htmlFor="release-date">Release Date</Label>
                     <Input
                       id="release-date"
@@ -545,8 +544,8 @@ export default function SongsPage() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-1.5">
                     <Label htmlFor="genre">Genre</Label>
                     <Select value={newSong.genre} onValueChange={(value) => setNewSong({ ...newSong, genre: value })}>
                       <SelectTrigger id="genre">
@@ -561,7 +560,7 @@ export default function SongsPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="grid gap-2">
+                  <div className="grid gap-1.5">
                     <Label htmlFor="language">Language</Label>
                     <Select
                       value={newSong.language}
@@ -580,21 +579,21 @@ export default function SongsPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid gap-1.5">
                   <Label htmlFor="lyrics">Lyrics</Label>
                   <Textarea
                     id="lyrics"
                     value={newSong.lyrics}
                     onChange={(e) => setNewSong({ ...newSong, lyrics: e.target.value })}
                     placeholder="Enter song lyrics"
-                    className="min-h-[300px]"
+                    className="min-h-[200px]"
                   />
                   <p className="text-xs text-muted-foreground">
                     Please format the lyrics with line breaks for verses and choruses. Mark chorus sections with
                     "Chorus:" if possible.
                   </p>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid gap-1.5">
                   <Label htmlFor="image">Song Cover Image</Label>
                   <div className="flex items-center gap-2">
                     <Input
@@ -618,7 +617,7 @@ export default function SongsPage() {
                   </p>
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="pt-2">
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
