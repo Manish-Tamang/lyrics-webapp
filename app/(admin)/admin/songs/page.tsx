@@ -47,7 +47,8 @@ import {
   query,
   orderBy,
   serverTimestamp,
-  arrayUnion
+  arrayUnion,
+  getDoc
 } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { toast } from "sonner"
@@ -136,12 +137,13 @@ export default function SongsPage() {
   const [uploadingImage, setUploadingImage] = useState(false)
   const [artists, setArtists] = useState<Artist[]>([])
   const [albums, setAlbums] = useState<string[]>([])
+  const [viewCounts, setViewCounts] = useState<Record<string, number>>({})
   const addImageRef = useRef<HTMLInputElement>(null)
   const editImageRef = useRef<HTMLInputElement>(null)
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Fetch songs from Firebase
+  // Fetch songs and view counts from Firebase
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -153,6 +155,7 @@ export default function SongsPage() {
 
         const songsData: Song[] = []
         const albumsSet = new Set<string>()
+        const viewCountsData: Record<string, number> = {}
 
         songsSnapshot.forEach((doc) => {
           const songData = { id: doc.id, ...doc.data() } as Song
@@ -163,6 +166,14 @@ export default function SongsPage() {
 
         setSongs(songsData)
         setAlbums(Array.from(albumsSet))
+
+        // Fetch view counts
+        for (const song of songsData) {
+          const viewDoc = await getDoc(doc(db, "views", song.id))
+          viewCountsData[song.id] = viewDoc.exists() ? viewDoc.data().count || 0 : 0
+        }
+
+        setViewCounts(viewCountsData)
 
         // Fetch artists
         const artistsQuery = query(collection(db, "artists"), orderBy("name"))
@@ -684,7 +695,7 @@ export default function SongsPage() {
                   </TableCell>
                   <TableCell>{song.language}</TableCell>
                   <TableCell>{song.releaseDate}</TableCell>
-                  <TableCell>{song.views.toLocaleString()}</TableCell>
+                  <TableCell>{viewCounts[song.id]?.toLocaleString() || "0"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-1">
                       <Button variant="ghost" size="icon" onClick={() => openPreviewDialog(song)}>
