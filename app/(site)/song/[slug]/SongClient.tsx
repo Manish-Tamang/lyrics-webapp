@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, Clock, Calendar, Disc } from "lucide-react";
+import { ChevronLeft, Clock, Calendar, Disc, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Song } from "@/types";
@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Timestamp } from "firebase/firestore";
 import LyricsDisplay from "@/components/lyrics-display";
+import ViewCounter from "@/components/view-counter";
 
 interface SongClientProps {
     slug: string;
@@ -159,6 +160,10 @@ export default function SongClient({ slug }: SongClientProps) {
                                 {song.releaseDate}
                             </div>
                         )}
+                        <div className="flex items-center text-sm text-muted-foreground">
+                            <Eye className="mr-1 h-4 w-4" />
+                            <ViewCounter slug={song.id} />
+                        </div>
                     </div>
                     <div className="mt-6 flex gap-3">
                         <Button className="rounded-[4px]">Play Song</Button>
