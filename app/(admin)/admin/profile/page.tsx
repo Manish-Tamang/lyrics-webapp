@@ -135,7 +135,6 @@ export default function AdminProfilePage() {
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
-
             <div className="grid gap-8 md:grid-cols-3">
                 {/* Profile Card */}
                 <Card className="md:col-span-1">
@@ -171,7 +170,6 @@ export default function AdminProfilePage() {
                         </div>
                     </CardContent>
                 </Card>
-
                 {/* Contributions Card */}
                 <Card className="md:col-span-2">
                     <CardHeader>
@@ -205,7 +203,6 @@ export default function AdminProfilePage() {
                                 ))
                             )}
                         </div>
-
                         {/* Pagination */}
                         {totalPages > 1 && (
                             <div className="flex justify-center mt-6">
@@ -217,7 +214,6 @@ export default function AdminProfilePage() {
                                                 className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
                                             />
                                         </PaginationItem>
-
                                         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                                             <PaginationItem key={page}>
                                                 <PaginationLink
@@ -228,7 +224,6 @@ export default function AdminProfilePage() {
                                                 </PaginationLink>
                                             </PaginationItem>
                                         ))}
-
                                         <PaginationItem>
                                             <PaginationNext
                                                 onClick={() => handlePageChange(currentPage + 1)}
