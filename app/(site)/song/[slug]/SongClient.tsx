@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,6 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Timestamp } from "firebase/firestore";
 import LyricsDisplay from "@/components/lyrics-display";
 import ViewCounter from "@/components/view-counter";
+import { PageAutoScroll } from "@/components/lyrics-auto-scroll";
+
 
 interface SongClientProps {
     slug: string;
@@ -32,6 +34,7 @@ export default function SongClient({ slug }: SongClientProps) {
     const [error, setError] = useState<string | null>(null);
     const [formattedDate, setFormattedDate] = useState<string>("");
     const [contributors, setContributors] = useState<Contributor[]>([]);
+    const lyricsContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchSong = async () => {
@@ -40,7 +43,7 @@ export default function SongClient({ slug }: SongClientProps) {
                 if (songDoc.exists()) {
                     const songData = { id: songDoc.id, ...songDoc.data() } as Song;
                     setSong(songData);
-                    
+
                     if (songData.contributors) {
                         const contributorPromises = songData.contributors.map(async (email) => {
                             const userDoc = await getDoc(doc(db, "users", email));
@@ -49,13 +52,13 @@ export default function SongClient({ slug }: SongClientProps) {
                                 return {
                                     name: userData.name || email.split("@")[0],
                                     email,
-                                    imageUrl: userData.image
+                                    imageUrl: userData.image,
                                 };
                             }
                             return {
                                 name: email.split("@")[0],
                                 email,
-                                imageUrl: undefined
+                                imageUrl: undefined,
                             };
                         });
                         const contributorData = await Promise.all(contributorPromises);
@@ -63,9 +66,10 @@ export default function SongClient({ slug }: SongClientProps) {
                     }
 
                     if (songData.createdAt) {
-                        const date = songData.createdAt instanceof Timestamp 
-                            ? songData.createdAt.toDate() 
-                            : new Date(songData.createdAt);
+                        const date =
+                            songData.createdAt instanceof Timestamp
+                                ? songData.createdAt.toDate()
+                                : new Date(songData.createdAt);
                         setFormattedDate(format(date, "MMM d, yyyy"));
                     }
                 } else {
@@ -173,9 +177,10 @@ export default function SongClient({ slug }: SongClientProps) {
                     </div>
                 </div>
             </div>
-            <div className="prose max-w-none">
-            <LyricsDisplay lyrics={song.lyrics} />
+            <div className="prose max-w-none" ref={lyricsContainerRef}>
+                <LyricsDisplay lyrics={song.lyrics} />
             </div>
+            <PageAutoScroll />
 
             {contributors.length > 0 && (
                 <div className="mt-8">
