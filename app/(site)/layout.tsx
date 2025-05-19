@@ -24,19 +24,17 @@ export const metadata: Metadata = {
   description: "Discover song lyrics and artist information in a clean, minimalist interface",
 }
 
-export default function RootLayout({
+export default function SiteLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`${karla.className} ${bethany.variable} font-karla bg-[#FAFAFA]`}>
-        <Navbar />
-        <main className="mx-auto max-w-[720px] px-4 py-6">{children}</main>
-        <Footer />
-      </body>
-    </html>
+    <div className={`${karla.className} ${bethany.variable} font-karla bg-[#FAFAFA]`}>
+      <Navbar />
+      <main className="mx-auto max-w-[720px] px-4 py-6">{children}</main>
+      <Footer />
+    </div>
   )
 }
 
