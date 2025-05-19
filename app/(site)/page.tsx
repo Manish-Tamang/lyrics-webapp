@@ -72,7 +72,7 @@ export default async function Home() {
     <div className="space-y-10">
       <section className="relative overflow-hidden rounded-[4px] bg-primary p-6 text-primary-foreground md:p-8">
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold md:text-4xl">Discover Lyrics</h1>
+          <h1 className="text-3xl font-bold md:text-4xl">Largest Nepali Song Lyrics Bank</h1>
           <p className="mt-2 max-w-md text-primary-foreground/90 md:text-lg">
             Explore lyrics from your favorite artists and discover new music in a clean, minimalist interface.
           </p>
