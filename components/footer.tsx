@@ -10,18 +10,18 @@ export default function Footer() {
             <h3 className="mb-4 text-sm font-semibold uppercase">About</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
+                <Link href="/about" className="text-muted-foreground hover:text-foreground">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
+                <Link href="https://www.manishtamang.com/contact" className="text-muted-foreground hover:text-foreground">
                   Contact
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Careers
+                <Link href="/submit-lyrics" className="text-muted-foreground hover:text-foreground">
+                  Contibute Lyrics
                 </Link>
               </li>
             </ul>
