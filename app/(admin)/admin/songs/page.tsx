@@ -531,11 +531,12 @@ export default function SongsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="grid gap-1.5">
                     <Label htmlFor="album">Album</Label>
-                    <Select value={newSong.album} onValueChange={(value) => setNewSong({ ...newSong, album: value })}>
+                    <Select value={newSong.album} onValueChange={(value) => setNewSong({ ...newSong, album: value === "none" ? "" : value })}>
                       <SelectTrigger id="album">
                         <SelectValue placeholder="Select album" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="none">No Album</SelectItem>
                         {albums.map((album) => (
                           <SelectItem key={album} value={album}>
                             {album}
@@ -843,12 +844,13 @@ export default function SongsPage() {
                   <Label htmlFor="edit-album">Album</Label>
                   <Select
                     value={selectedSong.album}
-                    onValueChange={(value) => setSelectedSong({ ...selectedSong, album: value })}
+                    onValueChange={(value) => setSelectedSong({ ...selectedSong, album: value === "none" ? "" : value })}
                   >
                     <SelectTrigger id="edit-album">
                       <SelectValue placeholder="Select album" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="none">No Album</SelectItem>
                       {albums.map((album) => (
                         <SelectItem key={album} value={album}>
                           {album}
