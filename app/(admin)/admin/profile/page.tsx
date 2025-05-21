@@ -19,6 +19,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import Image from "next/image";
 import {
     Pagination,
     PaginationContent,
@@ -140,10 +141,19 @@ export default function AdminProfilePage() {
                 <Card className="md:col-span-1">
                     <CardHeader>
                         <div className="flex flex-col items-center space-y-4">
-                            <Avatar className="h-20 w-20">
+                            {/* <Avatar className="h-20 w-20">
                                 <AvatarImage src={session?.user?.image || ""} alt={session?.user?.name || ""} />
                                 <AvatarFallback>{session?.user?.name?.charAt(0) || "A"}</AvatarFallback>
-                            </Avatar>
+                            </Avatar> */}
+                            <Image
+                                src={session?.user?.image || "/placeholder.svg"}
+                                alt={session?.user?.name || "Admin"}
+                                width={80}
+                                height={80}
+                                className="rounded-full"
+                                unoptimized
+                                draggable={false}
+                            />
                             <div className="text-center">
                                 <h2 className="text-xl font-bold">{session?.user?.name || "Admin"}</h2>
                                 <p className="text-sm text-muted-foreground">{session?.user?.email}</p>

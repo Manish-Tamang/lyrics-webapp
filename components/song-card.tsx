@@ -25,6 +25,7 @@ export default function SongCard({ id, title, artist, album, coverImage, duratio
             alt={`${title} by ${artist}`}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
+            draggable={false}
           />
         </div>
         <CardContent className="p-4">

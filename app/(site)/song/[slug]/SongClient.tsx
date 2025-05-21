@@ -147,6 +147,7 @@ export default function SongClient({ slug }: SongClientProps) {
             alt={song.title}
             fill
             className="object-cover"
+            draggable={false}
           />
         </div>
         <div className="flex-1">
@@ -196,13 +197,15 @@ export default function SongClient({ slug }: SongClientProps) {
           <div className="flex flex-wrap gap-4">
             {contributors.map((contributor) => (
               <div key={contributor.email} className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src={contributor.imageUrl}
-                    alt={contributor.name}
-                  />
-                  <AvatarFallback>{contributor.name.charAt(0)}</AvatarFallback>
-                </Avatar>
+                <Image
+                  src={contributor.imageUrl || "/placeholder.svg"}
+                  alt={contributor.name}
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                  unoptimized
+                  draggable={false}
+                />
                 <div>
                   <p className="text-sm font-medium">{contributor.name}</p>
                 </div>

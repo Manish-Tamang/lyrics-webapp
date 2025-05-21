@@ -160,7 +160,7 @@ function SearchContent() {
                 <Link
                   key={index}
                   href={`/search?q=${encodeURIComponent(term)}`}
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-blue hover:underline"
                 >
                   {term}
                 </Link>
@@ -173,8 +173,18 @@ function SearchContent() {
           <div className="text-center text-destructive">{error}</div>
         ) : results.length === 0 ? (
           <div className="space-y-6">
-            <div className="text-center text-muted-foreground">
-              No results found for "{queryParam}"
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+              <h2 className="text-2xl font-bold mb-4">No Results Found</h2>
+              <p className="text-gray-600 mb-6">Could not find any songs matching "{queryParam}"</p>
+              <Image
+                src="/404.png"
+                alt="Illustration for no results found"
+                width={500}
+                height={300}
+                objectFit="contain"
+                draggable="false"
+                style={{ userSelect: "none" }}
+              />
             </div>
             
             {suggestions.length > 0 && (

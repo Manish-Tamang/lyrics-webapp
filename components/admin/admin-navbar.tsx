@@ -141,10 +141,14 @@ export default function AdminNavbar() {
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
                   {adminUser?.image ? (
-                    <img
+                    <Image
                       src={adminUser.image} 
                       alt={adminUser.name || "Admin"} 
+                      width={32}
+                      height={32}
                       className="object-cover"
+                      unoptimized
+                      draggable={false}
                     />
                   ) : (
                     <AvatarFallback>
