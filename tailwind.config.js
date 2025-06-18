@@ -59,6 +59,8 @@ module.exports = {
       },
       fontFamily: {
         sans: ["var(--font-poppins)"],
+        karla: ["var(--font-karla)", "sans-serif"],
+        matangi: ["Matangi", "sans-serif"],
       },
     },
   },
