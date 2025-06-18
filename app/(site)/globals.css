@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Matangi:wght@400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -76,6 +78,9 @@
   }
     .font-bethany {
     font-family: var(--font-bethany), sans-serif;
+  }
+  .font-matangi {
+    font-family: 'Matangi', sans-serif;
   }
 }
 
