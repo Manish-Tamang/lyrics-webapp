@@ -212,15 +212,7 @@ export default function SubmitLyricsForm() {
                 </SelectTrigger>
                 <SelectContent className="rounded-[4px]">
                   <SelectItem value="english">English</SelectItem>
-                  <SelectItem value="spanish">Spanish</SelectItem>
-                  <SelectItem value="french">French</SelectItem>
-                  <SelectItem value="german">German</SelectItem>
-                  <SelectItem value="italian">Italian</SelectItem>
-                  <SelectItem value="portuguese">Portuguese</SelectItem>
-                  <SelectItem value="japanese">Japanese</SelectItem>
-                  <SelectItem value="korean">Korean</SelectItem>
-                  <SelectItem value="chinese">Chinese</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="nepali">Nepali</SelectItem>
                 </SelectContent>
               </Select>
             </div>
