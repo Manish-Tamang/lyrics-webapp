@@ -28,7 +28,7 @@ const SongCardSkeleton = () => (
     </div>
 );
 
-const ITEMS_PER_PAGE = 9; // Define how many songs per page
+const ITEMS_PER_PAGE = 10; // Define how many songs per page
 
 const SongListClient: React.FC = () => {
     const [allSongs, setAllSongs] = useState<Song[]>([]); // Store all fetched songs
@@ -123,7 +123,7 @@ const SongListClient: React.FC = () => {
 
     // Function to render song cards or skeletons
     const renderSongGrid = (songsToRender: Song[]) => (
-        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+        <div className="grid gap-6 grid-cols-2 md:grid-cols-3">
             {loading ? (
                 Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
                     <SongCardSkeleton key={`skeleton-${index}`} />
