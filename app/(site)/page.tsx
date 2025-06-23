@@ -19,7 +19,7 @@ interface Song {
   lyrics?: string
 }
 
-async function getRecentSongs(count = 3): Promise<Song[]> {
+async function getRecentSongs(count = 4): Promise<Song[]> {
   try {
     const songsQuery = query(
       collection(db, "songs"),
@@ -99,7 +99,7 @@ export default async function Home() {
           </Link>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+        <div className="grid gap-6 grid-cols-2 md:grid-cols-3">
           {recentSongs.map((song) => (
             <SongCard
               key={song.id}
