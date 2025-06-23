@@ -6,10 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { db, storage } from "@/lib/firebase/config";
-import { collection, addDoc, serverTimestamp, getDocs, query, orderBy } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  getDocs,
+  query,
+  orderBy,
+} from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { toast } from "sonner";
 
@@ -27,9 +40,9 @@ export default function SubmitLyricsForm() {
       try {
         const artistsQuery = query(collection(db, "artists"), orderBy("name"));
         const querySnapshot = await getDocs(artistsQuery);
-        const artistsList = querySnapshot.docs.map(doc => ({
+        const artistsList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
-          name: doc.data().name
+          name: doc.data().name,
         }));
         setArtists(artistsList);
       } catch (error) {
@@ -50,16 +63,30 @@ export default function SubmitLyricsForm() {
     setUploadProgress(null);
 
     const form = e.target as HTMLFormElement;
-    const songTitle = (form.elements.namedItem("song-title") as HTMLInputElement).value;
-    const artistId = (form.elements.namedItem("artist-id") as HTMLSelectElement).value;
-    const albumName = (form.elements.namedItem("album-name") as HTMLInputElement).value;
-    const releaseDate = (form.elements.namedItem("release-date") as HTMLInputElement).value;
+    const songTitle = (
+      form.elements.namedItem("song-title") as HTMLInputElement
+    ).value;
+    const artistId = (form.elements.namedItem("artist-id") as HTMLSelectElement)
+      .value;
+    const albumName = (
+      form.elements.namedItem("album-name") as HTMLInputElement
+    ).value;
+    const releaseDate = (
+      form.elements.namedItem("release-date") as HTMLInputElement
+    ).value;
     const genre = (form.elements.namedItem("genre") as HTMLSelectElement).value;
-    const language = (form.elements.namedItem("language") as HTMLSelectElement).value;
-    const lyrics = (form.elements.namedItem("lyrics") as HTMLTextAreaElement).value;
-    const contributors = (form.elements.namedItem("contributors") as HTMLInputElement).value;
-    const notes = (form.elements.namedItem("notes") as HTMLTextAreaElement).value;
-    const coverImageFile = (form.elements.namedItem("cover-image") as HTMLInputElement).files?.[0];
+    const language = (form.elements.namedItem("language") as HTMLSelectElement)
+      .value;
+    const lyrics = (form.elements.namedItem("lyrics") as HTMLTextAreaElement)
+      .value;
+    const contributors = (
+      form.elements.namedItem("contributors") as HTMLInputElement
+    ).value;
+    const notes = (form.elements.namedItem("notes") as HTMLTextAreaElement)
+      .value;
+    const coverImageFile = (
+      form.elements.namedItem("cover-image") as HTMLInputElement
+    ).files?.[0];
 
     let imageUrl = null;
 
@@ -72,7 +99,10 @@ export default function SubmitLyricsForm() {
       // Upload image if provided
       if (coverImageFile) {
         setUploadProgress(0);
-        const storageRef = ref(storage, `covers/${Date.now()}-${artistId}-${songTitle}-${coverImageFile.name}`);
+        const storageRef = ref(
+          storage,
+          `covers/${Date.now()}-${artistId}-${songTitle}-${coverImageFile.name}`
+        );
         await uploadBytes(storageRef, coverImageFile);
         setUploadProgress(50);
         imageUrl = await getDownloadURL(storageRef);
@@ -93,7 +123,7 @@ export default function SubmitLyricsForm() {
         imageUrl,
         status: "pending", // For admin review
         createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
       });
 
       setIsSubmitting(false);
@@ -110,7 +140,8 @@ export default function SubmitLyricsForm() {
     } catch (err: any) {
       setIsSubmitting(false);
       setUploadProgress(null);
-      const errorMessage = err.message || "An error occurred while submitting lyrics.";
+      const errorMessage =
+        err.message || "An error occurred while submitting lyrics.";
       setError(errorMessage);
       toast.error(errorMessage);
     }
@@ -123,7 +154,8 @@ export default function SubmitLyricsForm() {
           <Music className="h-4 w-4" />
           <AlertTitle>Success!</AlertTitle>
           <AlertDescription>
-            Your lyrics have been submitted successfully. Thank you for your contribution!
+            Your lyrics have been submitted successfully. Thank you for your
+            contribution!
           </AlertDescription>
         </Alert>
       )}
@@ -143,14 +175,24 @@ export default function SubmitLyricsForm() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="song-title">Song Title *</Label>
-              <Input id="song-title" name="song-title" placeholder="Enter song title" required className="rounded-[4px]" />
+              <Input
+                id="song-title"
+                name="song-title"
+                placeholder="Enter song title"
+                required
+                className="rounded-[4px]"
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="artist-id">Artist Name *</Label>
               <Select required name="artist-id">
                 <SelectTrigger id="artist-id" className="rounded-[4px]">
-                  <SelectValue placeholder={isLoadingArtists ? "Loading artists..." : "Select artist"} />
+                  <SelectValue
+                    placeholder={
+                      isLoadingArtists ? "Loading artists..." : "Select artist"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent className="rounded-[4px]">
                   {isLoadingArtists ? (
@@ -159,7 +201,7 @@ export default function SubmitLyricsForm() {
                     </SelectItem>
                   ) : (
                     artists.map((artist) => (
-                      <SelectItem key={artist.id} value={artist.id}>
+                      <SelectItem className="font-karla" key={artist.id} value={artist.id}>
                         {artist.name}
                       </SelectItem>
                     ))
@@ -172,12 +214,22 @@ export default function SubmitLyricsForm() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="album-name">Album Name</Label>
-              <Input id="album-name" name="album-name" placeholder="Enter album name (optional)" className="rounded-[4px]" />
+              <Input
+                id="album-name"
+                name="album-name"
+                placeholder="Enter album name (optional)"
+                className="rounded-[4px]"
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="release-date">Release Date</Label>
-              <Input id="release-date" name="release-date" type="date" className="rounded-[4px]" />
+              <Input
+                id="release-date"
+                name="release-date"
+                type="date"
+                className="rounded-[4px]"
+              />
             </div>
           </div>
 
@@ -232,8 +284,8 @@ export default function SubmitLyricsForm() {
               className="min-h-[300px] rounded-[4px]"
             />
             <p className="text-xs text-muted-foreground">
-              Please format the lyrics with line breaks for verses and choruses. Mark chorus sections with "Chorus:" if
-              possible.
+              Please format the lyrics with line breaks for verses and choruses.
+              Mark chorus sections with "Chorus:" if possible.
             </p>
           </div>
         </div>
@@ -254,7 +306,13 @@ export default function SubmitLyricsForm() {
           <div className="space-y-2">
             <Label htmlFor="cover-image">Cover Image</Label>
             <div className="flex items-center gap-2">
-              <Input id="cover-image" name="cover-image" type="file" accept="image/*" className="rounded-[4px]" />
+              <Input
+                id="cover-image"
+                name="cover-image"
+                type="file"
+                accept="image/*"
+                className="rounded-[4px]"
+              />
               {uploadProgress !== null && (
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -262,21 +320,29 @@ export default function SubmitLyricsForm() {
                 </div>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">Upload album or single cover art (optional). Max size: 2MB.</p>
+            <p className="text-xs text-muted-foreground">
+              Upload album or single cover art (optional). Max size: 2MB.
+            </p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="notes">Additional Notes</Label>
-            <Textarea id="notes" name="notes" placeholder="Any additional information about the song..." className="rounded-[4px]" />
+            <Textarea
+              id="notes"
+              name="notes"
+              placeholder="Any additional information about the song..."
+              className="rounded-[4px]"
+            />
           </div>
         </div>
 
         <div className="space-y-4">
           <div className="rounded-[4px] border bg-muted p-4">
             <p className="text-sm">
-              By submitting lyrics, you confirm that you are not violating any copyright laws and that you have the
-              right to share these lyrics. LyricVerse reserves the right to edit or remove content that violates our
-              terms of service.
+              By submitting lyrics, you confirm that you are not violating any
+              copyright laws and that you have the right to share these lyrics.
+              LyricVerse reserves the right to edit or remove content that
+              violates our terms of service.
             </p>
           </div>
 
@@ -289,7 +355,11 @@ export default function SubmitLyricsForm() {
             >
               Cancel
             </Button>
-            <Button type="submit" className="rounded-[4px]" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              className="rounded-[4px]"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
